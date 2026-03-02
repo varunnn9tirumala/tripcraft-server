@@ -14,21 +14,58 @@ text:"Hi 👋 I'm SARA, your AI travel assistant."
 }
 ])
 
-function sendMessage(){
+async function sendMessage(){
 
 if(message.trim()==="") return
 
 const userMsg = {sender:"user",text:message}
 
+setChat([...chat,userMsg])
+setMessage("")
+
+try{
+
+const res = await fetch(
+"https://tripcarft-backend-repo.onrender.com/api/sara-ai",
+{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+message: message,
+trip:{
+departure:"",
+destination:"",
+travelers:"",
+departDate:"",
+returnDate:""
+}
+})
+}
+)
+
+const data = await res.json()
+
 const saraReply = {
 sender:"sara",
-text:"Let me improve your travel package for you ✨"
+text:data.reply
 }
 
-setChat([...chat,userMsg,saraReply])
-setMessage("")
+setChat(prev=>[...prev,saraReply])
+
+}catch(err){
+
+setChat(prev=>[
+...prev,
+{sender:"sara",text:"Unable to connect to AI server."}
+])
+
+console.log(err)
+
 }
 
+}
 return(
 
 <div>
