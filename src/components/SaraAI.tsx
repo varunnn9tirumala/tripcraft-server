@@ -26,7 +26,7 @@ setMessage("")
 try{
 
 const res = await fetch(
-"https://tripcarft-backend-repo.onrender.com/api/sara-ai",
+"/api/sara-ai",
 {
 method:"POST",
 headers:{
