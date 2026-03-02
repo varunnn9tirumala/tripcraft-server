@@ -1,0 +1,136 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* TripCraft animated title */
+
+.tripcraft-title{
+
+font-size:64px;
+font-weight:800;
+letter-spacing:2px;
+
+background: linear-gradient(
+90deg,
+#ff6ec4,
+#7873f5,
+#4facfe,
+#00f2fe,
+#ff6ec4
+);
+
+background-size:300% 300%;
+
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+
+animation:tripColorMove 6s linear infinite;
+
+position:relative;
+padding:10px 40px;
+border-radius:20px;
+
+}
+
+.tripcraft-title::before{
+
+content:"";
+position:absolute;
+inset:-6px;
+border-radius:25px;
+
+background:linear-gradient(
+90deg,
+#ff6ec4,
+#7873f5,
+#4facfe,
+#00f2fe,
+#ff6ec4
+);
+
+background-size:300% 300%;
+
+animation:tripColorMove 6s linear infinite;
+
+z-index:-1;
+filter:blur(12px);
+
+}
+
+@keyframes tripColorMove{
+
+0%{background-position:0% 50%}
+50%{background-position:100% 50%}
+100%{background-position:0% 50%}
+
+}
+
+/* =========================
+TripCraft Animated Title
+========================= */
+
+.tripcraft-title{
+font-size:64px;
+font-weight:800;
+background: linear-gradient(270deg,#ff7a18,#32d2ff,#8a2be2,#ff3cac);
+background-size:800% 800%;
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+animation:tripGradient 8s ease infinite;
+}
+
+@keyframes tripGradient{
+0%{background-position:0% 50%;}
+50%{background-position:100% 50%;}
+100%{background-position:0% 50%;}
+}
+
+
+/* =========================
+Animated Search Box Border
+========================= */
+
+.search-box{
+border:3px solid transparent;
+border-radius:12px;
+background-image:linear-gradient(white,white),
+linear-gradient(270deg,#ff7a18,#32d2ff,#8a2be2,#ff3cac);
+background-origin:border-box;
+background-clip:padding-box,border-box;
+animation:borderMove 6s linear infinite;
+}
+
+@keyframes borderMove{
+0%{background-position:0% 50%;}
+100%{background-position:200% 50%;}
+}
+
+
+/* =========================
+SARA floating animation
+========================= */
+
+.sara-float{
+animation:saraFloat 3s ease-in-out infinite;
+}
+
+@keyframes saraFloat{
+0%{transform:translateY(0px)}
+50%{transform:translateY(-10px)}
+100%{transform:translateY(0px)}
+}
+
+.sara-glow{
+box-shadow:0 0 20px rgba(59,130,246,0.6);
+}
+
+.sara-pulse{
+animation:saraPulse 2s infinite;
+}
+
+@keyframes saraPulse{
+0%{transform:scale(1)}
+50%{transform:scale(1.05)}
+100%{transform:scale(1)}
+}
