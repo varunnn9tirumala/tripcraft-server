@@ -1,58 +1,78 @@
-import OpenAI from "openai"
+export default async function handler(req, res) {
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-})
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" })
+  }
 
-export default async function handler(req,res){
+  try {
 
-if(req.method !== "POST"){
-return res.status(405).json({error:"Method not allowed"})
-}
+    const { message, trip } = req.body
 
-try{
-
-const { message } = req.body
-
-const completion = await openai.chat.completions.create({
-model:"gpt-4o-mini",
-messages:[
-{
-role:"system",
-content:`
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: `
 You are SARA, the AI travel assistant of TripCraft.
 
 Improve travel packages WITHOUT increasing price.
 
 Add complimentary experiences like:
-• free breakfast
-• airport pickup
-• sightseeing
-• travel insurance
-• room upgrades
+• Free breakfast
+• Airport pickup
+• Sightseeing tour
+• Travel insurance
+• Room upgrade
 
 Speak like a friendly travel agent.
 `
-},
-{
-role:"user",
-content:message
-}
-]
-})
+          },
+          {
+            role: "user",
+            content: `
+Trip details
 
-res.status(200).json({
-reply: completion.choices[0].message.content
-})
+Departure: ${trip.departure}
+Destination: ${trip.destination}
+Travelers: ${trip.travelers}
+Dates: ${trip.departDate} to ${trip.returnDate}
 
-}catch(err){
+User request:
+${message}
+`
+          }
+        ]
+      })
+    })
 
-console.error(err)
+    const data = await response.json()
 
-res.status(500).json({
-error:"AI server error"
-})
+    // IMPORTANT CHECK
+    if (!data.choices) {
+      console.log("OpenAI Error:", data)
+      return res.status(500).json({
+        error: "OpenAI API Error",
+        details: data
+      })
+    }
 
-}
+    res.status(200).json({
+      reply: data.choices[0].message.content
+    })
 
+  } catch (error) {
+
+    console.log(error)
+
+    res.status(500).json({
+      error: "AI server error"
+    })
+  }
 }
