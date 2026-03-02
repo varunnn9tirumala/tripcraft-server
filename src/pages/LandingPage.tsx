@@ -35,7 +35,7 @@ return
 try{
 
 const res = await fetch(
-`http://localhost:5050/api/locations/search?q=${value}`
+`https://tripcraft-server.onrender.com/api/locations/search?q=${value}`
 )
 
 const data = await res.json()
@@ -66,7 +66,7 @@ return
 try{
 
 const res = await fetch(
-`http://localhost:5050/api/locations/search?q=${value}`
+`https://tripcraft-server.onrender.com/api/locations/search?q=${value}`
 )
 
 const data = await res.json()
@@ -94,7 +94,7 @@ async function fetchHotels(){
 try{
 
 const res = await fetch(
-`http://localhost:5050/api/hotels?city=${destination}`
+`https://tripcraft-server.onrender.com/api/hotels?city=${destination}`
 )
 
 const data = await res.json()

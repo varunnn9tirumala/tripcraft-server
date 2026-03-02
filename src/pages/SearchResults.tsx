@@ -127,7 +127,7 @@ async function fetchHotels(){
 try{
 
 const res = await fetch(
-`http://localhost:5050/api/hotels?city=${destination}`
+`https://tripcraft-server.onrender.com/api/hotels?city=${destination}`
 )
 
 const data = await res.json()
