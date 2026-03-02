@@ -95,8 +95,7 @@ async function fetchFlights(){
 
 try{
 
-const res = await fetch(
-`http://localhost:5050/api/flights?origin=${departure}&destination=${destination}`
+const res = await fetch(`https://tripcraft-server.onrender.com/api/flights?origin=${departure}&destination=${destination}`
 )
 
 const data = await res.json()
