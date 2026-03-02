@@ -42,7 +42,7 @@ setLoading(true)
 
 try{
 
-const res = await fetch("http://localhost:5050/api/sara-ai",{
+const res = await fetch("https://tripcraft-server.onrender.com/api/sara-ai",{
 
 method:"POST",
 
