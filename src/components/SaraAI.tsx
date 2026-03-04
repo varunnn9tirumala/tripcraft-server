@@ -18,22 +18,20 @@ async function sendMessage(){
 
 if(message.trim()==="") return
 
-const userMsg = {sender:"user",text:message}
+const userMsg = { sender:"user", text:message }
 
-setChat([...chat,userMsg])
+setChat(prev => [...prev,userMsg])
 setMessage("")
 
 try{
 
-const res = await fetch(
-"/api/sara-ai",
-{
+const res = await fetch("/api/sara-ai",{
 method:"POST",
 headers:{
 "Content-Type":"application/json"
 },
-body:JSON.stringify({
-message: message,
+body: JSON.stringify({
+message,
 trip:{
 departure:"",
 destination:"",
@@ -42,8 +40,7 @@ departDate:"",
 returnDate:""
 }
 })
-}
-)
+})
 
 const data = await res.json()
 
@@ -52,16 +49,14 @@ sender:"sara",
 text:data.reply
 }
 
-setChat(prev=>[...prev,saraReply])
+setChat(prev => [...prev,saraReply])
 
 }catch(err){
 
-setChat(prev=>[
-...prev,
-{sender:"sara",text:"Unable to connect to AI server."}
-])
-
-console.log(err)
+setChat(prev => [...prev,{
+sender:"sara",
+text:"AI server error. Please try again."
+}])
 
 }
 

@@ -1,6 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom"
 import { useEffect, useState } from "react"
-import { getSaraUpgrade } from "../utils/saraUpgrade"
 
 export default function SearchResults(){
 
@@ -16,8 +15,6 @@ departDate = "",
 returnDate = "",
 travelers = 1
 } = trip
-
-const saraUpgrade = getSaraUpgrade(destination)
 
 const [showPopup,setShowPopup] = useState(false)
 
@@ -95,8 +92,7 @@ async function fetchFlights(){
 
 try{
 
-const res = await fetch(`https://tripcraft-server.onrender.com/api/flights?origin=${departure}&destination=${destination}`
-)
+const res = await fetch(`https://tripcraft-server.onrender.com/api/flights?origin=${departure}&destination=${destination}`)
 
 const data = await res.json()
 
@@ -159,9 +155,47 @@ fetchHotels()
 let flightPrice = flights.length > 0 ? flights[0].price : 7000
 let hotelPrice = hotels.length > 0 ? hotels[0].price : 5000
 
-const budgetPackage = (flightPrice + hotelPrice) * travelers
-const standardPackage = (flightPrice + hotelPrice + 1500) * travelers
-const premiumPackage = (flightPrice + hotelPrice + 3500) * travelers
+const basePrice = (flightPrice + hotelPrice) * travelers
+
+const packages = [
+
+{
+name:"Basic Package",
+price: basePrice,
+features:[
+"3★ Hotel",
+"Flight Included",
+"Breakfast",
+"City Visit"
+]
+},
+
+{
+name:"Standard Package",
+price: basePrice + 3000,
+features:[
+"4★ Hotel",
+"Flight Included",
+"Airport Pickup",
+"Breakfast",
+"City Tour"
+]
+},
+
+{
+name:"Premium Package",
+price: basePrice + 7000,
+features:[
+"5★ Hotel",
+"Flight Included",
+"Luxury Pickup",
+"Guided City Tour",
+"Travel Insurance",
+"Late Checkout"
+]
+}
+
+]
 
 
 
@@ -263,46 +297,46 @@ Recommended Hotels
 </div>
 
 
-{/* SARA IMPROVED PACKAGE */}
+{/* PACKAGE OPTIONS */}
 
-<div className="mt-12 bg-blue-50 p-8 rounded-xl shadow">
+<h2 className="text-2xl font-semibold mt-12 mb-4">
+Available Travel Packages
+</h2>
 
-<div className="flex gap-4 mb-4">
+<div className="grid md:grid-cols-3 gap-6">
 
-<button
-onClick={bookPackage}
-className="bg-green-600 text-white px-6 py-2 rounded-lg"
->
-Book Package
-</button>
+{packages.map((pkg,index)=>(
 
-<button
-onClick={improveAgain}
-className="bg-blue-600 text-white px-6 py-2 rounded-lg"
->
-Improve Again
-</button>
+<div key={index} className="bg-white p-6 rounded-xl shadow">
 
-</div>
+<h3 className="text-xl font-bold mb-3">
+{pkg.name}
+</h3>
 
-<p className="mb-4">
-SARA added complimentary experiences without increasing price.
-</p>
+<ul className="list-disc ml-5 text-gray-600 mb-4">
 
-<ul className="list-disc ml-6 mb-4">
-
-{saraUpgrade.extras.map((item:string,index:number)=>(
-<li key={index}>{item}</li>
+{pkg.features.map((f,i)=>(
+<li key={i}>{f}</li>
 ))}
 
 </ul>
 
-<p className="text-2xl font-bold text-orange-600">
-Package Price: ₹{saraUpgrade.price}
+<p className="text-2xl font-bold text-orange-600 mb-4">
+₹ {pkg.price}
 </p>
+
+<button
+onClick={bookPackage}
+className="bg-green-600 text-white px-4 py-2 rounded-lg"
+>
+Book Package
+</button>
 
 </div>
 
+))}
+
+</div>
 
 
 {/* POPUP */}

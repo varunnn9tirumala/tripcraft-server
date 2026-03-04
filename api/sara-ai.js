@@ -16,6 +16,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
+        max_tokens : 200,
         messages: [
           {
             role: "system",
