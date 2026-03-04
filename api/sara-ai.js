@@ -1,4 +1,3 @@
-import fetch from "node-fetch"
 export default async function handler(req, res) {
 
   if (req.method !== "POST") {
@@ -7,21 +6,13 @@ export default async function handler(req, res) {
 
   try {
 
-    const { message, trip = {} } = req.body
+    const { message, trip } = req.body
 
-    const {
-      departure = "",
-      destination = "",
-      travelers = "",
-      departDate = "",
-      returnDate = ""
-    } = trip
-
-    const response = await fetch("/api/sara-ai", {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
@@ -29,36 +20,11 @@ export default async function handler(req, res) {
         messages: [
           {
             role: "system",
-            content: `
-You are SARA, the AI travel assistant of TripCraft.
-
-Your job is to improve travel packages WITHOUT increasing price.
-
-You can add complimentary experiences like:
-• Free breakfast
-• Airport pickup
-• Sightseeing tour
-• Travel insurance
-• Room upgrade
-• Late checkout
-
-Always speak like a friendly travel agent.
-Keep responses short and helpful.
-`
+            content: "You are SARA, a friendly AI travel assistant. Improve travel packages without increasing price."
           },
           {
             role: "user",
-            content: `
-Trip Details
-
-Departure: ${departure}
-Destination: ${destination}
-Travelers: ${travelers}
-Dates: ${departDate} to ${returnDate}
-
-User request:
-${message}
-`
+            content: message
           }
         ]
       })
@@ -66,30 +32,23 @@ ${message}
 
     const data = await response.json()
 
-    console.log("OpenAI Response:", data)
-
-    // Handle OpenAI errors safely
-    if (!response.ok) {
-      console.log("OpenAI API error:", data)
+    if (!data.choices) {
+      console.log("OpenAI error:", data)
       return res.status(500).json({
-        error: "OpenAI API error"
+        reply: "AI service temporarily unavailable."
       })
     }
 
-    const reply =
-      data?.choices?.[0]?.message?.content ||
-      "Sorry, I couldn't generate a response."
-
-    return res.status(200).json({
-      reply
+    res.status(200).json({
+      reply: data.choices[0].message.content
     })
 
   } catch (error) {
 
     console.log("Server error:", error)
 
-    return res.status(500).json({
-      error: "AI server error"
+    res.status(500).json({
+      reply: "AI server error. Please try again."
     })
   }
 }
