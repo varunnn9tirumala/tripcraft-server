@@ -1,3 +1,4 @@
+import fetch from "node-fetch"
 export default async function handler(req, res) {
 
   if (req.method !== "POST") {
@@ -16,7 +17,7 @@ export default async function handler(req, res) {
       returnDate = ""
     } = trip
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch("/api/sara-ai", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -64,6 +65,8 @@ ${message}
     })
 
     const data = await response.json()
+
+    console.log("OpenAI Response:", data)
 
     // Handle OpenAI errors safely
     if (!response.ok) {

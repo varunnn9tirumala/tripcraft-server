@@ -42,7 +42,7 @@ setLoading(true)
 
 try{
 
-const res = await fetch("https://tripcarft-backend-repo.onrender.com/api/sara-ai",{
+const res = await fetch("/api/sara-ai",{
 
 method:"POST",
 
