@@ -6,7 +6,15 @@ export default async function handler(req, res) {
 
   try {
 
-    const { message, trip } = req.body
+    const { message, trip = {} } = req.body
+
+    const {
+      departure = "",
+      destination = "",
+      travelers = "",
+      departDate = "",
+      returnDate = ""
+    } = trip
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -16,34 +24,36 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
-        max_tokens : 200,
+        max_tokens: 200,
         messages: [
           {
             role: "system",
             content: `
 You are SARA, the AI travel assistant of TripCraft.
 
-Improve travel packages WITHOUT increasing price.
+Your job is to improve travel packages WITHOUT increasing price.
 
-Add complimentary experiences like:
+You can add complimentary experiences like:
 • Free breakfast
 • Airport pickup
 • Sightseeing tour
 • Travel insurance
 • Room upgrade
+• Late checkout
 
-Speak like a friendly travel agent.
+Always speak like a friendly travel agent.
+Keep responses short and helpful.
 `
           },
           {
             role: "user",
             content: `
-Trip details
+Trip Details
 
-Departure: ${trip.departure}
-Destination: ${trip.destination}
-Travelers: ${trip.travelers}
-Dates: ${trip.departDate} to ${trip.returnDate}
+Departure: ${departure}
+Destination: ${destination}
+Travelers: ${travelers}
+Dates: ${departDate} to ${returnDate}
 
 User request:
 ${message}
@@ -55,24 +65,27 @@ ${message}
 
     const data = await response.json()
 
-    // IMPORTANT CHECK
-    if (!data.choices) {
-      console.log("OpenAI Error:", data)
+    // Handle OpenAI errors safely
+    if (!response.ok) {
+      console.log("OpenAI API error:", data)
       return res.status(500).json({
-        error: "OpenAI API Error",
-        details: data
+        error: "OpenAI API error"
       })
     }
 
-    res.status(200).json({
-      reply: data.choices[0].message.content
+    const reply =
+      data?.choices?.[0]?.message?.content ||
+      "Sorry, I couldn't generate a response."
+
+    return res.status(200).json({
+      reply
     })
 
   } catch (error) {
 
-    console.log(error)
+    console.log("Server error:", error)
 
-    res.status(500).json({
+    return res.status(500).json({
       error: "AI server error"
     })
   }
