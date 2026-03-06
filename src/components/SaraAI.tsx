@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 
 export default function SaraAI(){
 
@@ -6,12 +6,19 @@ const [open,setOpen] = useState(false)
 const [message,setMessage] = useState("")
 const [loading,setLoading] = useState(false)
 
+const chatEndRef = useRef<any>(null)
+
 const [chat,setChat] = useState([
 {
 sender:"sara",
-text:"Hi 👋 I'm SARA, your AI travel assistant."
+text:"Hi 👋 I'm SARA, your AI travel assistant. Ask me anything about your trip!"
 }
 ])
+
+useEffect(()=>{
+chatEndRef.current?.scrollIntoView({behavior:"smooth"})
+},[chat,loading])
+
 
 async function sendMessage(){
 
@@ -32,13 +39,7 @@ headers:{
 },
 body: JSON.stringify({
 message,
-trip:{
-departure:"",
-destination:"",
-travelers:"",
-departDate:"",
-returnDate:""
-}
+trip:{}
 })
 })
 
@@ -68,8 +69,6 @@ return(
 
 <div>
 
-{/* MAIN BUTTON */}
-
 <button
 onClick={()=>setOpen(!open)}
 className="fixed bottom-6 right-6 bg-blue-600 text-white px-6 py-3 rounded-full shadow-xl z-50 hover:bg-blue-700"
@@ -77,64 +76,57 @@ className="fixed bottom-6 right-6 bg-blue-600 text-white px-6 py-3 rounded-full 
 SARA 🤖
 </button>
 
-
-{/* CHAT WINDOW */}
-
 {open && (
 
-<div className="fixed bottom-20 right-6 w-80 bg-white shadow-2xl rounded-xl flex flex-col">
+<div className="fixed bottom-20 right-6 w-[340px] bg-white shadow-2xl rounded-xl flex flex-col overflow-hidden">
 
-<div className="bg-blue-600 text-white p-3 rounded-t-xl flex justify-between">
+<div className="bg-blue-600 text-white p-3 flex justify-between items-center">
 
-<span>SARA Travel Assistant</span>
+<span className="font-semibold">SARA Travel Assistant</span>
 
 <button
 onClick={()=>setOpen(false)}
-className="text-white"
+className="text-white text-lg"
 >
 ✕
 </button>
 
 </div>
 
-
-<div className="p-3 h-64 overflow-y-auto text-sm">
+<div className="p-4 h-72 overflow-y-auto text-sm space-y-3 bg-gray-50">
 
 {chat.map((msg,index)=>(
 
 <div
 key={index}
-className={`mb-2 ${
-msg.sender==="user" ? "text-right" : "text-left"
-}`}
+className={`flex ${msg.sender==="user" ? "justify-end" : "justify-start"}`}
 >
 
-<span
-className={`inline-block px-3 py-2 rounded-lg ${
+<div
+className={`max-w-[75%] px-3 py-2 rounded-lg break-words ${
 msg.sender==="user"
 ? "bg-blue-600 text-white"
-: "bg-gray-200"
+: "bg-gray-200 text-gray-800"
 }`}
 >
 
 {msg.text}
 
-</span>
+</div>
 
 </div>
 
 ))}
 
 {loading && (
-
-<div className="text-left text-gray-500">
+<div className="text-gray-500 text-sm">
 SARA is thinking...
 </div>
-
 )}
 
-</div>
+<div ref={chatEndRef}></div>
 
+</div>
 
 <div className="flex border-t">
 
@@ -147,12 +139,12 @@ sendMessage()
 }
 }}
 placeholder="Ask SARA..."
-className="flex-1 p-2 outline-none"
+className="flex-1 p-3 outline-none text-sm"
 />
 
 <button
 onClick={sendMessage}
-className="bg-blue-600 text-white px-4"
+className="bg-blue-600 text-white px-5"
 >
 Send
 </button>

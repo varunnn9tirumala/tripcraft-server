@@ -1,6 +1,10 @@
 import { useLocation, useNavigate } from "react-router-dom"
 import { useEffect, useState } from "react"
 
+import { doc, setDoc } from "firebase/firestore"
+import { db } from "../firebase"
+import { getAuth } from "firebase/auth"
+
 export default function SearchResults(){
 
 const location = useLocation()
@@ -43,12 +47,53 @@ const timer = setTimeout(()=> setShowPopup(true),8000)
 return ()=>clearTimeout(timer)
 },[departure,destination])
 
-function handleSatisfied(){
-alert("👍 Great! Your interest is saved.")
-setShowPopup(false)
+// -----------------------------
+// FIREBASE ANALYTICS
+// -----------------------------
+
+async function handleSatisfied(){
+
+const auth = getAuth()
+const user = auth.currentUser
+
+if(user){
+
+await setDoc(doc(db,"analytics",user.uid),{
+
+name:user.displayName,
+email:user.email,
+normalSearchSatisfied:true,
+saraSatisfied:false,
+timestamp:new Date()
+
+})
+
 }
 
-function handleNotSatisfied(){
+alert("👍 Great! Your interest is saved.")
+setShowPopup(false)
+
+}
+
+async function handleNotSatisfied(){
+
+const auth = getAuth()
+const user = auth.currentUser
+
+if(user){
+
+await setDoc(doc(db,"analytics",user.uid),{
+
+name:user.displayName,
+email:user.email,
+normalSearchSatisfied:false,
+saraSatisfied:true,
+timestamp:new Date()
+
+})
+
+}
+
 navigate("/sara",{
 state:{
 departure,
@@ -58,20 +103,28 @@ returnDate,
 travelers
 }
 })
+
 }
+
+// -----------------------------
+// FETCH FLIGHTS
+// -----------------------------
 
 useEffect(()=>{
 
 async function fetchFlights(){
+
 try{
 
 const res = await fetch(`https://tripcraft-server.onrender.com/api/flights?origin=${departure}&destination=${destination}`)
 const data = await res.json()
+
 setFlights(data || [])
 
 }catch(err){
 console.log("Flight error:",err)
 }
+
 }
 
 if(departure && destination){
@@ -79,6 +132,10 @@ fetchFlights()
 }
 
 },[departure,destination])
+
+// -----------------------------
+// FETCH HOTELS
+// -----------------------------
 
 useEffect(()=>{
 
@@ -100,6 +157,7 @@ setHotels(formatted)
 }catch(err){
 console.log(err)
 }
+
 }
 
 if(destination){
@@ -107,6 +165,10 @@ fetchHotels()
 }
 
 },[destination])
+
+// -----------------------------
+// PRICE CALCULATION
+// -----------------------------
 
 let flightPrice = flights.length > 0 ? flights[0].price : 7000
 let hotelPrice = hotels.length > 0 ? hotels[0].price : 5000
@@ -153,7 +215,6 @@ return(
 
 </div>
 
-
 {/* FLIGHTS */}
 
 <h2 className="text-2xl font-semibold mb-4">✈ Available Flights</h2>
@@ -188,7 +249,6 @@ Arrival: {flight.arrivalTime}
 
 </div>
 
-
 {/* HOTELS */}
 
 <h2 className="text-2xl font-semibold mt-12 mb-4">🏨 Recommended Hotels</h2>
@@ -216,7 +276,6 @@ Arrival: {flight.arrivalTime}
 ))}
 
 </div>
-
 
 {/* PACKAGES */}
 
@@ -261,7 +320,6 @@ Book Package
 ))}
 
 </div>
-
 
 {/* POPUP */}
 
