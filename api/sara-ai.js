@@ -16,16 +16,52 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
-        max_tokens: 200,
+        max_tokens: 180,
+        temperature: 0.7,
         messages: [
           {
             role: "system",
-            content: "You are SARA, a friendly AI travel assistant. Improve travel packages without increasing price."
+            content: `
+You are SARA, the AI travel assistant for TripCraft.
+
+Your job is to improve travel packages WITHOUT increasing the price.
+
+Guidelines:
+• Keep answers short and friendly (3–5 lines)
+• Speak like a professional travel agent
+• Always reference the destination when possible
+• Suggest complimentary experiences such as:
+  - Free breakfast
+  - Airport pickup
+  - Sightseeing tour
+  - Travel insurance
+  - Room upgrade
+  - Local cultural experiences
+
+Tone example:
+"Great choice visiting Goa! 🌴 I can enhance your package by adding a complimentary beach sightseeing tour and free breakfast without increasing the price."
+
+Always be helpful, human-like, and easy to understand.
+`
           },
+
           {
             role: "user",
-            content: message
+            content: `
+User Trip Details:
+
+Departure: ${trip?.departure || "Unknown"}
+Destination: ${trip?.destination || "Unknown"}
+Travelers: ${trip?.travelers || "Unknown"}
+Dates: ${trip?.departDate || "Unknown"} to ${trip?.returnDate || "Unknown"}
+
+User Request:
+${message}
+
+Improve this travel package without increasing the price.
+`
           }
+
         ]
       })
     })
@@ -50,5 +86,6 @@ export default async function handler(req, res) {
     res.status(500).json({
       reply: "AI server error. Please try again."
     })
+
   }
 }
