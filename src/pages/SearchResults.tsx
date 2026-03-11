@@ -27,7 +27,6 @@ travelers = 1
 } = trip
 
 const [showPopup,setShowPopup] = useState(false)
-
 const [packages,setPackages] = useState<Package[]>([])
 
 // -----------------------------
@@ -132,15 +131,11 @@ async function calculatePackages(){
 
 try{
 
-// GET FLIGHTS
-
 const flightRes = await fetch(
 `https://tripcraft-server.onrender.com/api/flights?origin=${departure}&destination=${destination}`
 )
 
 const flights = await flightRes.json()
-
-// GET HOTELS
 
 const hotelRes = await fetch(
 `https://tripcraft-server.onrender.com/api/hotels?city=${destination}`
@@ -148,7 +143,9 @@ const hotelRes = await fetch(
 
 const hotels = await hotelRes.json()
 
-// FLIGHT AVERAGE
+// -----------------------------
+// AVERAGE FLIGHT PRICE
+// -----------------------------
 
 const flightPrices =
 flights?.map((f:any)=>f.price) || []
@@ -158,7 +155,9 @@ flightPrices.length > 0
 ? flightPrices.reduce((a:number,b:number)=>a+b,0) / flightPrices.length
 : 7000
 
-// HOTEL AVERAGE
+// -----------------------------
+// AVERAGE HOTEL PRICE
+// -----------------------------
 
 const hotelPrices =
 hotels?.map((h:any)=>h.Hotel_Price || h.price || 5000)
@@ -168,7 +167,36 @@ hotelPrices.length > 0
 ? hotelPrices.reduce((a:number,b:number)=>a+b,0) / hotelPrices.length
 : 5000
 
-const basePrice = (avgFlight + avgHotel) * travelers
+let basePrice = (avgFlight + avgHotel) * travelers
+
+// -----------------------------
+// SAFETY PRICE LOGIC
+// -----------------------------
+
+const indianCities = [
+"Delhi","Goa","Mumbai","Chennai","Bangalore",
+"Kolkata","Hyderabad","Pune","Jaipur","Kochi"
+]
+
+const isInternational = !indianCities.includes(destination)
+
+if(isInternational){
+
+if(basePrice < 60000){
+basePrice = 60000 * travelers
+}
+
+}else{
+
+if(basePrice < 15000){
+basePrice = 15000 * travelers
+}
+
+}
+
+// -----------------------------
+// CREATE PACKAGES
+// -----------------------------
 
 setPackages([
 
@@ -294,7 +322,7 @@ ${pkg.name==="Luxury Package" ? "border-2 border-orange-400 scale-105" : ""}
 </ul>
 
 <p className="text-2xl font-bold text-orange-600 mb-4">
-₹ {pkg.price}
+Starting from ₹ {pkg.price}
 </p>
 
 <div className="flex flex-col gap-3">
