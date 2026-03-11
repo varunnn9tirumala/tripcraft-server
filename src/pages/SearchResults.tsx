@@ -5,6 +5,12 @@ import { doc, setDoc } from "firebase/firestore"
 import { db } from "../firebase"
 import { getAuth } from "firebase/auth"
 
+type Package = {
+name: string
+price: number
+features: string[]
+}
+
 export default function SearchResults(){
 
 const location = useLocation()
@@ -22,11 +28,13 @@ travelers = 1
 
 const [showPopup,setShowPopup] = useState(false)
 
+const [packages,setPackages] = useState<Package[]>([])
+
 // -----------------------------
-// NAVIGATE TO SARA WITH PACKAGE
+// NAVIGATE TO SARA
 // -----------------------------
 
-function improveWithSara(pkgName){
+function improveWithSara(pkgName:string){
 
 navigate("/sara",{
 state:{
@@ -42,7 +50,7 @@ selectedPackage: pkgName
 }
 
 // -----------------------------
-// POPUP TIMER (15 seconds)
+// POPUP TIMER
 // -----------------------------
 
 useEffect(()=>{
@@ -115,16 +123,58 @@ travelers
 }
 
 // -----------------------------
-// PRICE CALCULATION
+// FETCH DATA FROM BACKEND
 // -----------------------------
 
-const basePrice = 12000 * travelers
+useEffect(()=>{
 
-const packages = [
+async function calculatePackages(){
+
+try{
+
+// GET FLIGHTS
+
+const flightRes = await fetch(
+`https://tripcraft-server.onrender.com/api/flights?origin=${departure}&destination=${destination}`
+)
+
+const flights = await flightRes.json()
+
+// GET HOTELS
+
+const hotelRes = await fetch(
+`https://tripcraft-server.onrender.com/api/hotels?city=${destination}`
+)
+
+const hotels = await hotelRes.json()
+
+// FLIGHT AVERAGE
+
+const flightPrices =
+flights?.map((f:any)=>f.price) || []
+
+const avgFlight =
+flightPrices.length > 0
+? flightPrices.reduce((a:number,b:number)=>a+b,0) / flightPrices.length
+: 7000
+
+// HOTEL AVERAGE
+
+const hotelPrices =
+hotels?.map((h:any)=>h.Hotel_Price || h.price || 5000)
+
+const avgHotel =
+hotelPrices.length > 0
+? hotelPrices.reduce((a:number,b:number)=>a+b,0) / hotelPrices.length
+: 5000
+
+const basePrice = (avgFlight + avgHotel) * travelers
+
+setPackages([
 
 {
 name:"Budget Package",
-price: basePrice,
+price: Math.round(basePrice * 0.8),
 features:[
 "3★ Comfortable Hotel",
 "Airport Pickup",
@@ -135,7 +185,7 @@ features:[
 
 {
 name:"Standard Package",
-price: basePrice + 6000,
+price: Math.round(basePrice),
 features:[
 "4★ Premium Hotel",
 "Airport Pickup",
@@ -146,7 +196,7 @@ features:[
 
 {
 name:"Luxury Package",
-price: basePrice + 12000,
+price: Math.round(basePrice * 1.4),
 features:[
 "5★ Luxury Resort",
 "Private Airport Transfer",
@@ -156,13 +206,47 @@ features:[
 ]
 }
 
-]
+])
+
+}catch(err){
+
+console.log("Pricing error:",err)
+
+setPackages([
+
+{
+name:"Budget Package",
+price: 15000,
+features:["3★ Hotel","Airport Pickup","Breakfast"]
+},
+
+{
+name:"Standard Package",
+price: 22000,
+features:["4★ Hotel","City Tour","Dinner"]
+},
+
+{
+name:"Luxury Package",
+price: 35000,
+features:["5★ Resort","Private Pickup","Travel Insurance"]
+}
+
+])
+
+}
+
+}
+
+if(destination){
+calculatePackages()
+}
+
+},[destination,departure,travelers])
 
 return(
 
 <div className="min-h-screen bg-gray-100 flex flex-col items-center p-10">
-
-{/* TRIP SUMMARY */}
 
 <div className="bg-white shadow-xl rounded-xl p-8 mb-10 w-full max-w-4xl text-center">
 
@@ -183,8 +267,6 @@ Your Trip
 </p>
 
 </div>
-
-{/* PACKAGE OPTIONS */}
 
 <h2 className="text-2xl font-bold mb-6">
 Recommended Travel Packages
@@ -238,8 +320,6 @@ Improve with SARA 🤖
 ))}
 
 </div>
-
-{/* POPUP */}
 
 {showPopup && (
 
