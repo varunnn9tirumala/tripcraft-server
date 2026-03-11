@@ -201,16 +201,20 @@ return(
 
 <div className="min-h-screen bg-gray-100 p-10 relative">
 
-{/* HERO TRIP INFO */}
+{/* TRIP SUMMARY */}
 
 <div className="bg-white rounded-xl shadow-lg p-6 mb-10">
+
+<p className="text-sm text-gray-500 mb-1">
+Your Trip
+</p>
 
 <h1 className="text-3xl font-bold mb-2">
 {departure} → {destination}
 </h1>
 
 <p className="text-gray-600">
-{departDate} → {returnDate} • {travelers} Travelers
+{departDate} – {returnDate} • {travelers} Travelers
 </p>
 
 </div>
@@ -288,9 +292,15 @@ Arrival: {flight.arrivalTime}
 {packages.map((pkg,index)=>(
 
 <div key={index}
-className={`bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition border
+className={`bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition border relative
 ${pkg.name==="Premium Package" ? "border-orange-400 scale-105" : ""}
 `}>
+
+{pkg.name === "Premium Package" && (
+<span className="absolute top-2 right-2 bg-orange-500 text-white text-xs px-2 py-1 rounded">
+Best Value
+</span>
+)}
 
 <h3 className="text-xl font-bold mb-3">
 {pkg.name}
@@ -308,12 +318,23 @@ ${pkg.name==="Premium Package" ? "border-orange-400 scale-105" : ""}
 ₹ {pkg.price}
 </p>
 
+<div className="flex flex-col gap-2">
+
 <button
 onClick={bookPackage}
 className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg transition"
 >
 Book Package
 </button>
+
+<button
+onClick={improveAgain}
+className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition"
+>
+Improve with SARA 🤖
+</button>
+
+</div>
 
 </div>
 
