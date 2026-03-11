@@ -22,22 +22,37 @@ travelers = 1
 
 const [showPopup,setShowPopup] = useState(false)
 
-function improveWithSara(){
+// -----------------------------
+// NAVIGATE TO SARA WITH PACKAGE
+// -----------------------------
+
+function improveWithSara(pkgName){
+
 navigate("/sara",{
 state:{
 departure,
 destination,
 departDate,
 returnDate,
-travelers
+travelers,
+selectedPackage: pkgName
 }
 })
+
 }
 
+// -----------------------------
+// POPUP TIMER (15 seconds)
+// -----------------------------
+
 useEffect(()=>{
+
 if(!departure || !destination) return
-const timer = setTimeout(()=> setShowPopup(true),8000)
+
+const timer = setTimeout(()=> setShowPopup(true),15000)
+
 return ()=>clearTimeout(timer)
+
 },[departure,destination])
 
 // -----------------------------
@@ -200,12 +215,23 @@ ${pkg.name==="Luxury Package" ? "border-2 border-orange-400 scale-105" : ""}
 ₹ {pkg.price}
 </p>
 
+<div className="flex flex-col gap-3">
+
 <button
-onClick={improveWithSara}
+onClick={()=>alert(`🎉 ${pkg.name} booked successfully!`)}
+className="bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg"
+>
+Book Now
+</button>
+
+<button
+onClick={()=>improveWithSara(pkg.name)}
 className="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg"
 >
 Improve with SARA 🤖
 </button>
+
+</div>
 
 </div>
 
