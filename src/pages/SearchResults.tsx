@@ -22,14 +22,7 @@ travelers = 1
 
 const [showPopup,setShowPopup] = useState(false)
 
-const [flights,setFlights] = useState<any[]>([])
-const [hotels,setHotels] = useState<any[]>([])
-
-function bookPackage(){
-alert("✅ Package booked successfully!")
-}
-
-function improveAgain(){
+function improveWithSara(){
 navigate("/sara",{
 state:{
 departure,
@@ -107,209 +100,98 @@ travelers
 }
 
 // -----------------------------
-// FETCH FLIGHTS
-// -----------------------------
-
-useEffect(()=>{
-
-async function fetchFlights(){
-
-try{
-
-const res = await fetch(`https://tripcraft-server.onrender.com/api/flights?origin=${departure}&destination=${destination}`)
-const data = await res.json()
-
-setFlights(data || [])
-
-}catch(err){
-console.log("Flight error:",err)
-}
-
-}
-
-if(departure && destination){
-fetchFlights()
-}
-
-},[departure,destination])
-
-// -----------------------------
-// FETCH HOTELS
-// -----------------------------
-
-useEffect(()=>{
-
-async function fetchHotels(){
-
-try{
-
-const res = await fetch(`https://tripcraft-server.onrender.com/api/hotels?city=${destination}`)
-const data = await res.json()
-
-const formatted = (data || []).map((h:any)=>({
-name: h.Hotel_Name || h.name,
-rating: h.Hotel_Rating || h.rating,
-price: h.Hotel_Price || h.price
-}))
-
-setHotels(formatted)
-
-}catch(err){
-console.log(err)
-}
-
-}
-
-if(destination){
-fetchHotels()
-}
-
-},[destination])
-
-// -----------------------------
 // PRICE CALCULATION
 // -----------------------------
 
-let flightPrice = flights.length > 0 ? flights[0].price : 7000
-let hotelPrice = hotels.length > 0 ? hotels[0].price : 5000
-
-const basePrice = (flightPrice + hotelPrice) * travelers
+const basePrice = 12000 * travelers
 
 const packages = [
 
 {
-name:"Basic Package",
+name:"Budget Package",
 price: basePrice,
-features:["3★ Hotel","Flight Included","Breakfast","City Visit"]
+features:[
+"3★ Comfortable Hotel",
+"Airport Pickup",
+"Daily Breakfast",
+"City Sightseeing"
+]
 },
 
 {
 name:"Standard Package",
-price: basePrice + 3000,
-features:["4★ Hotel","Flight Included","Airport Pickup","Breakfast","City Tour"]
+price: basePrice + 6000,
+features:[
+"4★ Premium Hotel",
+"Airport Pickup",
+"Guided City Tour",
+"Breakfast + Dinner"
+]
 },
 
 {
-name:"Premium Package",
-price: basePrice + 7000,
-features:["5★ Hotel","Flight Included","Luxury Pickup","Guided City Tour","Travel Insurance","Late Checkout"]
+name:"Luxury Package",
+price: basePrice + 12000,
+features:[
+"5★ Luxury Resort",
+"Private Airport Transfer",
+"Exclusive Guided Tours",
+"Travel Insurance",
+"Late Checkout"
+]
 }
 
 ]
 
 return(
 
-<div className="min-h-screen bg-gray-100 p-10 relative">
+<div className="min-h-screen bg-gray-100 flex flex-col items-center p-10">
 
 {/* TRIP SUMMARY */}
 
-<div className="bg-white rounded-xl shadow-lg p-6 mb-10">
+<div className="bg-white shadow-xl rounded-xl p-8 mb-10 w-full max-w-4xl text-center">
 
-<p className="text-sm text-gray-500 mb-1">
+<h2 className="text-sm text-gray-500 mb-2">
 Your Trip
-</p>
+</h2>
 
-<h1 className="text-3xl font-bold mb-2">
+<h1 className="text-3xl font-bold mb-3">
 {departure} → {destination}
 </h1>
 
 <p className="text-gray-600">
-{departDate} – {returnDate} • {travelers} Travelers
-</p>
-
-</div>
-
-{/* FLIGHTS */}
-
-<h2 className="text-2xl font-semibold mb-4">✈ Available Flights</h2>
-
-<div className="grid md:grid-cols-3 gap-6">
-
-{flights.map((flight:any,index:number)=>(
-
-<div key={index} className="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition">
-
-<h3 className="text-xl font-bold mb-2">{flight.airline}</h3>
-
-<p className="text-gray-500 text-sm mb-1">
-{flight.origin} → {flight.destination}
+{departDate} – {returnDate}
 </p>
 
 <p className="text-gray-600">
-Departure: {flight.departureTime}
-</p>
-
-<p className="text-gray-600">
-Arrival: {flight.arrivalTime}
-</p>
-
-<p className="text-blue-600 font-bold text-lg mt-3">
-₹ {flight.price}
+{travelers} Travelers
 </p>
 
 </div>
 
-))}
+{/* PACKAGE OPTIONS */}
 
-</div>
-
-{/* HOTELS */}
-
-<h2 className="text-2xl font-semibold mt-12 mb-4">🏨 Recommended Hotels</h2>
-
-<div className="grid md:grid-cols-3 gap-6">
-
-{hotels.map((hotel:any,index:number)=>(
-
-<div key={index} className="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition">
-
-<h3 className="text-xl font-bold mb-2">
-{hotel.name}
-</h3>
-
-<p className="text-yellow-500 mb-2">
-⭐ {hotel.rating}
-</p>
-
-<p className="text-green-600 font-bold text-lg">
-₹ {hotel.price} / night
-</p>
-
-</div>
-
-))}
-
-</div>
-
-{/* PACKAGES */}
-
-<h2 className="text-2xl font-semibold mt-12 mb-4">
-🎯 Travel Packages
+<h2 className="text-2xl font-bold mb-6">
+Recommended Travel Packages
 </h2>
 
-<div className="grid md:grid-cols-3 gap-6">
+<div className="grid md:grid-cols-3 gap-8 max-w-5xl w-full">
 
 {packages.map((pkg,index)=>(
 
 <div key={index}
-className={`bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition border relative
-${pkg.name==="Premium Package" ? "border-orange-400 scale-105" : ""}
+className={`bg-white rounded-xl shadow-lg p-6 flex flex-col justify-between transition hover:shadow-2xl
+${pkg.name==="Luxury Package" ? "border-2 border-orange-400 scale-105" : ""}
 `}>
-
-{pkg.name === "Premium Package" && (
-<span className="absolute top-2 right-2 bg-orange-500 text-white text-xs px-2 py-1 rounded">
-Best Value
-</span>
-)}
 
 <h3 className="text-xl font-bold mb-3">
 {pkg.name}
 </h3>
 
-<ul className="list-disc ml-5 text-gray-600 mb-4">
+<ul className="text-gray-600 mb-6 space-y-1">
 
 {pkg.features.map((f,i)=>(
-<li key={i}>{f}</li>
+<li key={i}>• {f}</li>
 ))}
 
 </ul>
@@ -318,23 +200,12 @@ Best Value
 ₹ {pkg.price}
 </p>
 
-<div className="flex flex-col gap-2">
-
 <button
-onClick={bookPackage}
-className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg transition"
->
-Book Package
-</button>
-
-<button
-onClick={improveAgain}
-className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition"
+onClick={improveWithSara}
+className="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg"
 >
 Improve with SARA 🤖
 </button>
-
-</div>
 
 </div>
 
