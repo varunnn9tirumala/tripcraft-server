@@ -12,7 +12,8 @@ departure="",
 destination="",
 departDate="",
 returnDate="",
-travelers=1
+travelers=1,
+selectedPackage=""
 } = trip
 
 const [message,setMessage] = useState("")
@@ -23,18 +24,20 @@ const chatEndRef = useRef<any>(null)
 const [chat,setChat] = useState<any[]>([
 {
 sender:"sara",
-text:`Hi 👋 I'm SARA.
+text:`Hi 👋 I'm SARA, your TripCraft AI travel assistant.
 
 I see you're planning a trip from ${departure} to ${destination}.
 
-Tell me what you'd like to improve — hotels, experiences, or price value.`
+You're currently viewing the ${selectedPackage || "travel"} package.
+
+How can I improve your trip?`
 }
 ])
 
+// Auto scroll
 useEffect(()=>{
 chatEndRef.current?.scrollIntoView({behavior:"smooth"})
 },[chat,loading])
-
 
 async function sendMessage(){
 
@@ -64,7 +67,8 @@ departure,
 destination,
 departDate,
 returnDate,
-travelers
+travelers,
+selectedPackage
 }
 })
 
@@ -85,7 +89,7 @@ setChat(prev=>[
 ...prev,
 {
 sender:"sara",
-text:"AI server error. Please try again."
+text:"⚠️ AI server error. Please try again."
 }
 ])
 
@@ -99,15 +103,21 @@ return(
 
 <div className="min-h-screen bg-gray-100 flex justify-center items-center p-10">
 
-<div className="bg-white shadow-xl rounded-xl w-[600px] p-6">
+<div className="bg-white shadow-xl rounded-xl w-[650px] flex flex-col">
 
-<h1 className="text-2xl font-bold mb-3">
-SARA AI Travel Assistant
+{/* HEADER */}
+
+<div className="bg-blue-600 text-white px-6 py-4 rounded-t-xl flex items-center justify-between">
+
+<h1 className="text-lg font-semibold">
+🤖 SARA AI Travel Assistant
 </h1>
+
+</div>
 
 {/* TRIP SUMMARY */}
 
-<div className="bg-blue-50 border rounded-lg p-3 mb-4 text-sm">
+<div className="bg-blue-50 border-b px-6 py-3 text-sm">
 
 <p className="font-semibold mb-1">Your Trip</p>
 
@@ -120,25 +130,35 @@ SARA AI Travel Assistant
 </p>
 
 <p>
-{travelers} Travelers
+{travelers} Travelers • {selectedPackage}
 </p>
 
 </div>
 
-<div className="h-[380px] overflow-y-auto border rounded-lg p-4 mb-4 space-y-3 bg-gray-50">
+{/* CHAT AREA */}
+
+<div className="h-[420px] overflow-y-auto px-6 py-4 space-y-4 bg-gray-50">
 
 {chat.map((msg,index)=>(
 
 <div
 key={index}
-className={`flex ${msg.sender==="user"?"justify-end":"justify-start"}`}
+className={`flex items-end ${
+msg.sender==="user"?"justify-end":"justify-start"
+}`}
 >
 
+{msg.sender==="sara" && (
+<div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center mr-2 text-sm">
+🤖
+</div>
+)}
+
 <div
-className={`max-w-[75%] px-4 py-2 rounded-lg break-words ${
+className={`max-w-[70%] px-4 py-2 rounded-xl text-sm leading-relaxed break-words ${
 msg.sender==="user"
-? "bg-blue-600 text-white"
-: "bg-gray-200 text-gray-800"
+? "bg-blue-600 text-white rounded-br-none"
+: "bg-white border text-gray-800 rounded-bl-none"
 }`}
 >
 
@@ -146,17 +166,37 @@ msg.sender==="user"
 
 </div>
 
+{msg.sender==="user" && (
+<div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center ml-2 text-sm">
+👤
+</div>
+)}
+
 </div>
 
 ))}
 
-{loading && <p className="text-gray-500">SARA is thinking...</p>}
+{loading && (
+
+<div className="flex items-center text-gray-500 text-sm">
+
+<div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center mr-2">
+🤖
+</div>
+
+SARA is thinking...
+
+</div>
+
+)}
 
 <div ref={chatEndRef}></div>
 
 </div>
 
-<div className="flex gap-2">
+{/* INPUT */}
+
+<div className="border-t px-4 py-3 flex gap-2">
 
 <input
 value={message}
@@ -167,16 +207,14 @@ sendMessage()
 }
 }}
 placeholder="Ask SARA to improve your trip..."
-className="flex-1 border p-3 rounded-lg"
+className="flex-1 border rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400"
 />
 
 <button
 onClick={sendMessage}
-className="bg-blue-600 text-white px-5 py-3 rounded-lg"
+className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm"
 >
-
 Send
-
 </button>
 
 </div>

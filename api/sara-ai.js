@@ -1,128 +1,121 @@
 export default async function handler(req, res) {
 
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" })
-  }
+if (req.method !== "POST") {
+return res.status(405).json({ error: "Method not allowed" })
+}
 
-  try {
+try {
 
-    const { message, trip } = req.body || {}
+const { message, trip } = req.body
 
-    const departure = trip?.departure || "Unknown"
-    const destination = trip?.destination || "Unknown"
-    const travelers = trip?.travelers || "Unknown"
-    const departDate = trip?.departDate || "Unknown"
-    const returnDate = trip?.returnDate || "Unknown"
+const response = await fetch("https://api.openai.com/v1/chat/completions", {
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+method: "POST",
 
-      method: "POST",
+headers: {
+"Content-Type": "application/json",
+Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
+},
 
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
-      },
+body: JSON.stringify({
 
-      body: JSON.stringify({
+model: "gpt-4o-mini",
 
-        model: "gpt-4o-mini",
-        max_tokens: 160,
-        temperature: 0.65,
+temperature: 0.7,
 
-        messages: [
+max_tokens: 200,
 
-          {
-            role: "system",
-            content: `
-You are SARA, the AI travel assistant for TripCraft.
+messages: [
 
-Your job is to improve travel packages WITHOUT increasing the price.
+{
+role: "system",
+content: `
+You are **SARA**, the intelligent AI travel assistant of TripCraft.
+
+Your job is to help users improve travel packages WITHOUT increasing the price.
+
+You behave like a friendly professional travel consultant.
 
 Rules:
-- Speak like a friendly travel agent.
-- Keep responses short (3–5 lines).
-- Mention the destination when possible.
-- Suggest 2–4 complimentary upgrades.
-- Use bullet points for upgrades.
-- Never increase the package price.
 
-Possible complimentary upgrades:
+1. Always mention the destination
+2. Speak in a friendly tone
+3. Keep answers short (3–5 lines)
+4. Suggest complimentary upgrades
+5. Do NOT increase price
+6. Make the trip feel more valuable
+
+Possible upgrades:
+
 • Free breakfast
 • Airport pickup
 • Sightseeing tour
+• Cultural experiences
 • Travel insurance
 • Room upgrade
-• Early check-in
 • Late checkout
-• Local cultural experiences
 
-Response format:
+Always sound confident and helpful.
 
-Start with a friendly comment about the destination.
+Example style:
 
-Example:
-"Great choice visiting Goa! 🌴"
+"Great choice visiting Bali! 🌴
 
-Then suggest upgrades like:
+Since you're looking at the Standard Package, I can enhance your trip by adding a complimentary beach tour and free breakfast without increasing the price.
 
-• Complimentary airport pickup
-• Free breakfast during your stay
-• Guided sunset beach tour
-
-End with a helpful question like:
-"Would you like me to include these upgrades in your trip?"
+Would you like me to upgrade this package for you?"
 `
-          },
+},
 
-          {
-            role: "user",
-            content: `
-User Trip Details
+{
+role: "user",
+content: `
 
-Departure: ${departure}
-Destination: ${destination}
-Travelers: ${travelers}
-Dates: ${departDate} to ${returnDate}
+Trip Details
 
-User Request:
-${message || ""}
+Departure: ${trip?.departure || "Unknown"}
+Destination: ${trip?.destination || "Unknown"}
+Dates: ${trip?.departDate || "Unknown"} to ${trip?.returnDate || "Unknown"}
+Travelers: ${trip?.travelers || "Unknown"}
+Selected Package: ${trip?.selectedPackage || "Not selected"}
 
-Improve this travel package without increasing the price.
+User Message:
+${message}
+
+Improve the travel package without increasing price.
 `
-          }
+}
 
-        ]
+]
 
-      })
+})
 
-    })
+})
 
-    const data = await response.json()
+const data = await response.json()
 
-    if (!data || !data.choices || !data.choices[0]) {
+if (!data.choices) {
 
-      console.log("OpenAI error:", data)
+console.log("OpenAI Error:", data)
 
-      return res.status(500).json({
-        reply: "AI service temporarily unavailable. Please try again."
-      })
+return res.status(500).json({
+reply: "SARA is currently unavailable. Please try again shortly."
+})
 
-    }
+}
 
-    const aiReply = data.choices[0].message.content.trim()
+res.status(200).json({
+reply: data.choices[0].message.content
+})
 
-    res.status(200).json({
-      reply: aiReply
-    })
+}catch(error){
 
-  } catch (error) {
+console.log("Server error:", error)
 
-    console.log("Server error:", error)
+res.status(500).json({
+reply: "AI server error. Please try again."
+})
 
-    res.status(500).json({
-      reply: "AI server error. Please try again."
-    })
-
-  }
+}
 
 }
