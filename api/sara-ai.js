@@ -6,19 +6,31 @@ export default async function handler(req, res) {
 
   try {
 
-    const { message, trip } = req.body
+    const { message, trip } = req.body || {}
+
+    const departure = trip?.departure || "Unknown"
+    const destination = trip?.destination || "Unknown"
+    const travelers = trip?.travelers || "Unknown"
+    const departDate = trip?.departDate || "Unknown"
+    const returnDate = trip?.returnDate || "Unknown"
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
+
       method: "POST",
+
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
       },
+
       body: JSON.stringify({
+
         model: "gpt-4o-mini",
-        max_tokens: 180,
-        temperature: 0.7,
+        max_tokens: 160,
+        temperature: 0.65,
+
         messages: [
+
           {
             role: "system",
             content: `
@@ -26,57 +38,81 @@ You are SARA, the AI travel assistant for TripCraft.
 
 Your job is to improve travel packages WITHOUT increasing the price.
 
-Guidelines:
-• Keep answers short and friendly (3–5 lines)
-• Speak like a professional travel agent
-• Always reference the destination when possible
-• Suggest complimentary experiences such as:
-  - Free breakfast
-  - Airport pickup
-  - Sightseeing tour
-  - Travel insurance
-  - Room upgrade
-  - Local cultural experiences
+Rules:
+- Speak like a friendly travel agent.
+- Keep responses short (3–5 lines).
+- Mention the destination when possible.
+- Suggest 2–4 complimentary upgrades.
+- Use bullet points for upgrades.
+- Never increase the package price.
 
-Trip example:
-"Great choice visiting Goa! 🌴 I can enhance your package by adding a complimentary beach sightseeing tour and free breakfast without increasing the price."
+Possible complimentary upgrades:
+• Free breakfast
+• Airport pickup
+• Sightseeing tour
+• Travel insurance
+• Room upgrade
+• Early check-in
+• Late checkout
+• Local cultural experiences
 
-Always be helpful, human-like, and easy to understand.
+Response format:
+
+Start with a friendly comment about the destination.
+
+Example:
+"Great choice visiting Goa! 🌴"
+
+Then suggest upgrades like:
+
+• Complimentary airport pickup
+• Free breakfast during your stay
+• Guided sunset beach tour
+
+End with a helpful question like:
+"Would you like me to include these upgrades in your trip?"
 `
           },
 
           {
             role: "user",
             content: `
-User Trip Details:
+User Trip Details
 
-Departure: ${trip?.departure || "Unknown"}
-Destination: ${trip?.destination || "Unknown"}
-Travelers: ${trip?.travelers || "Unknown"}
-Dates: ${trip?.departDate || "Unknown"} to ${trip?.returnDate || "Unknown"}
+Departure: ${departure}
+Destination: ${destination}
+Travelers: ${travelers}
+Dates: ${departDate} to ${returnDate}
 
 User Request:
-${message}
+${message || ""}
 
 Improve this travel package without increasing the price.
 `
           }
 
         ]
+
       })
+
     })
 
     const data = await response.json()
 
-    if (!data.choices) {
+    if (!data || !data.choices || !data.choices[0]) {
+
       console.log("OpenAI error:", data)
+
       return res.status(500).json({
-        reply: "AI service temporarily unavailable."
+        reply: "AI service temporarily unavailable. Please try again."
       })
+
     }
 
+    const aiReply = data.choices[0].message.content.trim()
+
     res.status(200).json({
-      reply: data.choices[0].message.content
+      reply: aiReply
     })
 
   } catch (error) {
@@ -88,4 +124,5 @@ Improve this travel package without increasing the price.
     })
 
   }
+
 }
