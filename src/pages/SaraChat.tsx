@@ -1,6 +1,10 @@
 import { useLocation } from "react-router-dom"
 import { useState, useRef, useEffect } from "react"
 
+import { doc, setDoc, getDoc } from "firebase/firestore"
+import { db } from "../firebase"
+import { getAuth } from "firebase/auth"
+
 export default function SaraChat(){
 
 const location = useLocation()
@@ -18,26 +22,36 @@ selectedPackage=""
 
 const [message,setMessage] = useState("")
 const [loading,setLoading] = useState(false)
+const [showBooking,setShowBooking] = useState(false)
 
 const chatEndRef = useRef<any>(null)
 
 const [chat,setChat] = useState<any[]>([
 {
 sender:"sara",
-text:`Hi 👋 I'm SARA, your TripCraft AI travel assistant.
+text:`Hi 👋 I'm SARA.
 
 I see you're planning a trip from ${departure} to ${destination}.
 
 You're currently viewing the ${selectedPackage || "travel"} package.
 
-How can I improve your trip?`
+Tell me what you'd like to improve and I'll try to add complimentary experiences without increasing your price.`
 }
 ])
 
-// Auto scroll
+
+// ======================
+// AUTO SCROLL
+// ======================
+
 useEffect(()=>{
 chatEndRef.current?.scrollIntoView({behavior:"smooth"})
 },[chat,loading])
+
+
+// ======================
+// SEND MESSAGE
+// ======================
 
 async function sendMessage(){
 
@@ -83,6 +97,8 @@ text:data.reply
 
 setChat(prev=>[...prev,aiReply])
 
+setShowBooking(true)
+
 }catch(err){
 
 setChat(prev=>[
@@ -99,6 +115,61 @@ setLoading(false)
 
 }
 
+
+// ======================
+// CONFIRM SARA BOOKING
+// ======================
+
+async function confirmSaraBooking(){
+
+const auth = getAuth()
+const user = auth.currentUser
+
+let name="Unknown"
+let email="Unknown"
+let userId="guest_"+Date.now()
+
+if(user){
+name=user.displayName || "Unknown"
+email=user.email || "Unknown"
+userId=user.uid
+}
+
+const ref = doc(db,"users",userId)
+
+const snap = await getDoc(ref)
+
+if(snap.exists()){
+
+await setDoc(ref,{
+name,
+email,
+usedSara:true,
+bookings:(snap.data().bookings || 0)+1
+},{merge:true})
+
+}else{
+
+await setDoc(ref,{
+name,
+email,
+usedSara:true,
+bookings:1
+})
+
+}
+
+alert("🎉 Booking confirmed with SARA!")
+
+setShowBooking(false)
+
+}
+
+
+// ======================
+// UI
+// ======================
+
 return(
 
 <div className="min-h-screen bg-gray-100 flex justify-center items-center p-10">
@@ -107,13 +178,14 @@ return(
 
 {/* HEADER */}
 
-<div className="bg-blue-600 text-white px-6 py-4 rounded-t-xl flex items-center justify-between">
+<div className="bg-blue-600 text-white px-6 py-4 rounded-t-xl">
 
 <h1 className="text-lg font-semibold">
 🤖 SARA AI Travel Assistant
 </h1>
 
 </div>
+
 
 {/* TRIP SUMMARY */}
 
@@ -135,6 +207,7 @@ return(
 
 </div>
 
+
 {/* CHAT AREA */}
 
 <div className="h-[420px] overflow-y-auto px-6 py-4 space-y-4 bg-gray-50">
@@ -143,22 +216,16 @@ return(
 
 <div
 key={index}
-className={`flex items-end ${
+className={`flex ${
 msg.sender==="user"?"justify-end":"justify-start"
 }`}
 >
 
-{msg.sender==="sara" && (
-<div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center mr-2 text-sm">
-🤖
-</div>
-)}
-
 <div
-className={`max-w-[70%] px-4 py-2 rounded-xl text-sm leading-relaxed break-words ${
+className={`max-w-[70%] px-4 py-2 rounded-xl text-sm ${
 msg.sender==="user"
-? "bg-blue-600 text-white rounded-br-none"
-: "bg-white border text-gray-800 rounded-bl-none"
+? "bg-blue-600 text-white"
+: "bg-white border text-gray-800"
 }`}
 >
 
@@ -166,33 +233,41 @@ msg.sender==="user"
 
 </div>
 
-{msg.sender==="user" && (
-<div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center ml-2 text-sm">
-👤
-</div>
-)}
-
 </div>
 
 ))}
 
-{loading && (
+{loading && <p className="text-gray-500">SARA is thinking...</p>}
 
-<div className="flex items-center text-gray-500 text-sm">
+<div ref={chatEndRef}></div>
 
-<div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center mr-2">
-🤖
 </div>
 
-SARA is thinking...
+
+{/* BOOKING ACTION */}
+
+{showBooking && (
+
+<div className="px-6 py-3 border-t flex gap-3">
+
+<button
+onClick={confirmSaraBooking}
+className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm"
+>
+Confirm Booking with SARA
+</button>
+
+<button
+onClick={()=>setShowBooking(false)}
+className="bg-gray-400 text-white px-4 py-2 rounded-lg text-sm"
+>
+Continue Chat
+</button>
 
 </div>
 
 )}
 
-<div ref={chatEndRef}></div>
-
-</div>
 
 {/* INPUT */}
 
@@ -207,12 +282,12 @@ sendMessage()
 }
 }}
 placeholder="Ask SARA to improve your trip..."
-className="flex-1 border rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400"
+className="flex-1 border rounded-lg px-4 py-2 text-sm"
 />
 
 <button
 onClick={sendMessage}
-className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm"
+className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm"
 >
 Send
 </button>
