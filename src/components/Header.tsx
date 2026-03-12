@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { Home, Map, Info, Shield } from "lucide-react"
-
+import { Link } from "react-router-dom"
 import { loginWithGoogle, logoutUser, listenAuth } from "../auth"
 
 export default function Header(){
@@ -86,3 +86,24 @@ Login with Google
 )
 
 }
+
+
+<nav className="flex items-center gap-6 text-white">
+
+<Link to="/" className="flex items-center gap-1 hover:text-blue-400">
+🏠 Home
+</Link>
+
+<Link to="/trips" className="flex items-center gap-1 hover:text-blue-400">
+🧳 Trips
+</Link>
+
+<Link to="/about" className="flex items-center gap-1 hover:text-blue-400">
+ℹ️ About
+</Link>
+
+<Link to="/admin" className="flex items-center gap-1 hover:text-blue-400">
+🛡 Admin
+</Link>
+
+</nav>
