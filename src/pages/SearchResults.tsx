@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom"
 import { useEffect, useState } from "react"
 
-import { doc, setDoc } from "firebase/firestore"
+import { doc, setDoc, getDoc } from "firebase/firestore"
 import { db } from "../firebase"
 import { getAuth } from "firebase/auth"
 
@@ -29,9 +29,67 @@ travelers = 1
 const [showPopup,setShowPopup] = useState(false)
 const [packages,setPackages] = useState<Package[]>([])
 
-// -----------------------------
+
+// =============================
+// TRACK NORMAL BOOKING
+// =============================
+
+async function trackNormalBooking(){
+
+const auth = getAuth()
+const user = auth.currentUser
+
+let name = "Unknown"
+let email = "Unknown"
+let userId = "guest_" + Date.now()
+
+if(user){
+name = user.displayName || "Unknown"
+email = user.email || "Unknown"
+userId = user.uid
+}
+
+const ref = doc(db,"users",userId)
+const snap = await getDoc(ref)
+
+if(snap.exists()){
+
+await setDoc(ref,{
+name,
+email,
+bookings:(snap.data().bookings || 0) + 1
+},{merge:true})
+
+}else{
+
+await setDoc(ref,{
+name,
+email,
+bookings:1,
+usedSara:false
+})
+
+}
+
+}
+
+
+// =============================
+// BOOK NOW BUTTON
+// =============================
+
+async function bookNow(pkgName:string){
+
+await trackNormalBooking()
+
+alert(`🎉 ${pkgName} booked successfully!`)
+
+}
+
+
+// =============================
 // NAVIGATE TO SARA
-// -----------------------------
+// =============================
 
 function improveWithSara(pkgName:string){
 
@@ -48,9 +106,10 @@ selectedPackage: pkgName
 
 }
 
-// -----------------------------
+
+// =============================
 // POPUP TIMER
-// -----------------------------
+// =============================
 
 useEffect(()=>{
 
@@ -62,52 +121,27 @@ return ()=>clearTimeout(timer)
 
 },[departure,destination])
 
-// -----------------------------
-// FIREBASE ANALYTICS
-// -----------------------------
+
+// =============================
+// POPUP SATISFIED
+// =============================
 
 async function handleSatisfied(){
 
-const auth = getAuth()
-const user = auth.currentUser
+await trackNormalBooking()
 
-if(user){
+alert("👍 Great! Booking confirmed.")
 
-await setDoc(doc(db,"analytics",user.uid),{
-
-name:user.displayName,
-email:user.email,
-normalSearchSatisfied:true,
-saraSatisfied:false,
-timestamp:new Date()
-
-})
-
-}
-
-alert("👍 Great! Your interest is saved.")
 setShowPopup(false)
 
 }
 
-async function handleNotSatisfied(){
 
-const auth = getAuth()
-const user = auth.currentUser
+// =============================
+// POPUP ASK SARA
+// =============================
 
-if(user){
-
-await setDoc(doc(db,"analytics",user.uid),{
-
-name:user.displayName,
-email:user.email,
-normalSearchSatisfied:false,
-saraSatisfied:true,
-timestamp:new Date()
-
-})
-
-}
+function handleNotSatisfied(){
 
 navigate("/sara",{
 state:{
@@ -121,9 +155,10 @@ travelers
 
 }
 
-// -----------------------------
+
+// =============================
 // FETCH DATA FROM BACKEND
-// -----------------------------
+// =============================
 
 useEffect(()=>{
 
@@ -143,6 +178,7 @@ const hotelRes = await fetch(
 
 const hotels = await hotelRes.json()
 
+
 // -----------------------------
 // AVERAGE FLIGHT PRICE
 // -----------------------------
@@ -154,6 +190,7 @@ const avgFlight =
 flightPrices.length > 0
 ? flightPrices.reduce((a:number,b:number)=>a+b,0) / flightPrices.length
 : 7000
+
 
 // -----------------------------
 // AVERAGE HOTEL PRICE
@@ -168,6 +205,7 @@ hotelPrices.length > 0
 : 5000
 
 let basePrice = (avgFlight + avgHotel) * travelers
+
 
 // -----------------------------
 // SAFETY PRICE LOGIC
@@ -193,6 +231,7 @@ basePrice = 15000 * travelers
 }
 
 }
+
 
 // -----------------------------
 // CREATE PACKAGES
@@ -240,28 +279,6 @@ features:[
 
 console.log("Pricing error:",err)
 
-setPackages([
-
-{
-name:"Budget Package",
-price: 15000,
-features:["3★ Hotel","Airport Pickup","Breakfast"]
-},
-
-{
-name:"Standard Package",
-price: 22000,
-features:["4★ Hotel","City Tour","Dinner"]
-},
-
-{
-name:"Luxury Package",
-price: 35000,
-features:["5★ Resort","Private Pickup","Travel Insurance"]
-}
-
-])
-
 }
 
 }
@@ -271,6 +288,11 @@ calculatePackages()
 }
 
 },[destination,departure,travelers])
+
+
+// =============================
+// UI
+// =============================
 
 return(
 
@@ -296,9 +318,11 @@ Your Trip
 
 </div>
 
+
 <h2 className="text-2xl font-bold mb-6">
 Recommended Travel Packages
 </h2>
+
 
 <div className="grid md:grid-cols-3 gap-8 max-w-5xl w-full">
 
@@ -328,7 +352,7 @@ Starting from ₹ {pkg.price}
 <div className="flex flex-col gap-3">
 
 <button
-onClick={()=>alert(`🎉 ${pkg.name} booked successfully!`)}
+onClick={()=>bookNow(pkg.name)}
 className="bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg"
 >
 Book Now
@@ -348,6 +372,7 @@ Improve with SARA 🤖
 ))}
 
 </div>
+
 
 {showPopup && (
 
