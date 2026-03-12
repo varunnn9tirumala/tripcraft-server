@@ -12,7 +12,6 @@ export default async function handler(req, res) {
 
     let userPrompt = ""
 
-    // Handle greeting messages
     if(
       shortMessage === "hi" ||
       shortMessage === "hello" ||
@@ -27,7 +26,6 @@ Maximum 2 sentences.
 `
     }
 
-    // Handle ok/thanks
     else if(
       shortMessage === "ok" ||
       shortMessage === "okay" ||
@@ -39,7 +37,7 @@ The user acknowledged your message.
 Reply politely and ask if they want:
 • better hotel
 • activities
-• cheaper options
+• local experiences
 
 Maximum 2 sentences.
 `
@@ -53,14 +51,17 @@ User Trip Details:
 Departure: ${trip?.departure || "Unknown"}
 Destination: ${trip?.destination || "Unknown"}
 Travelers: ${trip?.travelers || "Unknown"}
-Package: ${trip?.selectedPackage || "Unknown"}
-Price: ₹${trip?.price || "Unknown"}
+Package: ${trip?.selectedPackage || "Standard Package"}
+Package Price: ₹${trip?.price || "Not Provided"}
 Dates: ${trip?.departDate || "Unknown"} to ${trip?.returnDate || "Unknown"}
 
 User Request:
 ${message}
 
-Improve the travel package without increasing the price and clearly mention that the final price remains ₹${trip?.price}.
+Improve the travel package WITHOUT increasing price.
+
+Always mention:
+"The total price remains ₹${trip?.price || "the same"}".
 `
     }
 
@@ -76,9 +77,7 @@ Improve the travel package without increasing the price and clearly mention that
       body: JSON.stringify({
 
         model: "gpt-4o-mini",
-
         temperature: 0.6,
-
         max_tokens: 120,
 
         messages: [
@@ -88,30 +87,25 @@ Improve the travel package without increasing the price and clearly mention that
             content: `
 You are SARA, the AI travel assistant of TripCraft.
 
-Your job is to improve travel packages WITHOUT increasing the price.
-
 Rules:
 
-1. NEVER increase the package price.
-2. Add only complimentary experiences.
-3. Choose experiences popular for the destination.
-4. Adjust improvements based on package type:
+1. NEVER increase the package price
+2. Add complimentary experiences only
+3. Suggest activities popular for the destination
+4. Adjust upgrades based on package:
 
-Budget → small upgrades  
-Standard → moderate upgrades  
-Luxury → premium experiences  
+Budget → small upgrades
+Standard → moderate upgrades
+Luxury → premium upgrades
 
-5. Keep answers short (2–3 sentences).
-6. Sound like a friendly travel expert.
+5. Keep replies SHORT (2–3 sentences)
+6. Friendly travel expert tone
 
 Example:
 
-"Great choice visiting Goa! 🌴  
-I've added a complimentary sunset cruise and a local seafood tasting experience to your package.  
+"Great choice visiting Goa! 🌴
+I've added a complimentary sunset cruise and beach yoga session.
 Your total price remains the same."
-
-Avoid long explanations.
-Avoid repeating greetings.
 `
           },
 
