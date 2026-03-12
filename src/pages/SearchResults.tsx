@@ -77,12 +77,10 @@ return {name,email,userId}
 
 
 // =============================
-// BOOK NOW BUTTON
+// SAVE TRIP TO FIREBASE
 // =============================
 
-async function bookNow(pkg:Package){
-
-const userData = await trackNormalBooking()
+async function saveTrip(userData:any,pkgName:string,pkgPrice:number,type:string){
 
 await addDoc(collection(db,"trips"),{
 
@@ -96,14 +94,27 @@ departDate,
 returnDate,
 travelers,
 
-package: pkg.name,
-price: pkg.price,
+package: pkgName,
+price: pkgPrice,
 
-bookingType:"normal",
+bookingType:type,
 
 createdAt:new Date()
 
 })
+
+}
+
+
+// =============================
+// BOOK NOW BUTTON
+// =============================
+
+async function bookNow(pkg:Package){
+
+const userData = await trackNormalBooking()
+
+await saveTrip(userData,pkg.name,pkg.price,"normal")
 
 alert(`🎉 ${pkg.name} booked successfully!`)
 
@@ -154,26 +165,7 @@ async function handleSatisfied(){
 
 const userData = await trackNormalBooking()
 
-await addDoc(collection(db,"trips"),{
-
-userId:userData.userId,
-name:userData.name,
-email:userData.email,
-
-departure,
-destination,
-departDate,
-returnDate,
-travelers,
-
-package:"User Selected Package",
-price:0,
-
-bookingType:"normal",
-
-createdAt:new Date()
-
-})
+await saveTrip(userData,"User Selected Package",0,"normal")
 
 alert("👍 Great! Booking confirmed.")
 

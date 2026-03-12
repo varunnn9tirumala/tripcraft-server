@@ -5,6 +5,11 @@ import { doc, setDoc, getDoc, addDoc, collection } from "firebase/firestore"
 import { db } from "../firebase"
 import { getAuth } from "firebase/auth"
 
+type ChatMessage = {
+  sender: "user" | "sara"
+  text: string
+}
+
 export default function SaraChat(){
 
 const location = useLocation()
@@ -25,9 +30,9 @@ const [message,setMessage] = useState("")
 const [loading,setLoading] = useState(false)
 const [showBooking,setShowBooking] = useState(false)
 
-const chatEndRef = useRef<any>(null)
+const chatEndRef = useRef<HTMLDivElement | null>(null)
 
-const [chat,setChat] = useState<any[]>([
+const [chat,setChat] = useState<ChatMessage[]>([
 {
 sender:"sara",
 text:`Hi 👋 I'm SARA.
@@ -40,20 +45,25 @@ Tell me what you'd like to improve and I'll try to add complimentary experiences
 }
 ])
 
+// ======================
+// AUTO SCROLL
+// ======================
 
 useEffect(()=>{
 chatEndRef.current?.scrollIntoView({behavior:"smooth"})
 },[chat,loading])
 
+// ======================
+// SEND MESSAGE
+// ======================
 
 async function sendMessage(){
 
 if(message.trim()==="") return
 
-const userMsg = {sender:"user",text:message}
+const userMsg:ChatMessage = {sender:"user",text:message}
 
 setChat(prev=>[...prev,userMsg])
-
 setMessage("")
 setLoading(true)
 
@@ -84,13 +94,14 @@ price
 
 const data = await res.json()
 
-const aiReply={
+const aiReply:ChatMessage = {
 sender:"sara",
 text:data.reply
 }
 
 setChat(prev=>[...prev,aiReply])
 
+// show booking button after AI reply
 setShowBooking(true)
 
 }catch(err){
@@ -109,6 +120,40 @@ setLoading(false)
 
 }
 
+
+// ======================
+// SAVE TRIP FUNCTION
+// ======================
+
+async function saveTrip(userId:string,name:string,email:string){
+
+await addDoc(collection(db,"trips"),{
+
+userId,
+name,
+email,
+
+departure,
+destination,
+departDate,
+returnDate,
+travelers,
+
+package:selectedPackage,
+price,
+
+bookingType:"sara",
+
+createdAt:new Date()
+
+})
+
+}
+
+
+// ======================
+// CONFIRM SARA BOOKING
+// ======================
 
 async function confirmSaraBooking(){
 
@@ -149,26 +194,8 @@ bookings:1
 
 }
 
-await addDoc(collection(db,"trips"),{
-
-userId,
-name,
-email,
-
-departure,
-destination,
-departDate,
-returnDate,
-travelers,
-
-package:selectedPackage,
-price,
-
-bookingType:"sara",
-
-createdAt:new Date()
-
-})
+// Save trip
+await saveTrip(userId,name,email)
 
 alert("🎉 Booking confirmed with SARA!")
 
@@ -177,15 +204,25 @@ setShowBooking(false)
 }
 
 
+// ======================
+// UI
+// ======================
+
 return(
 
 <div className="min-h-screen bg-gray-100 flex justify-center items-center p-10">
 
 <div className="bg-white shadow-xl rounded-xl w-[650px] flex flex-col">
 
+{/* HEADER */}
+
 <div className="bg-blue-600 text-white px-6 py-4 rounded-t-xl">
-<h1 className="text-lg font-semibold">🤖 SARA AI Travel Assistant</h1>
+<h1 className="text-lg font-semibold">
+🤖 SARA AI Travel Assistant
+</h1>
 </div>
+
+{/* TRIP SUMMARY */}
 
 <div className="bg-blue-50 border-b px-6 py-3 text-sm">
 
@@ -199,15 +236,27 @@ return(
 
 </div>
 
+{/* CHAT AREA */}
 
 <div className="h-[420px] overflow-y-auto px-6 py-4 space-y-4 bg-gray-50">
 
 {chat.map((msg,index)=>(
 
-<div key={index} className={`flex ${msg.sender==="user"?"justify-end":"justify-start"}`}>
+<div
+key={index}
+className={`flex ${msg.sender==="user"?"justify-end":"justify-start"}`}
+>
 
-<div className={`max-w-[70%] px-4 py-2 rounded-xl text-sm ${msg.sender==="user" ? "bg-blue-600 text-white" : "bg-white border text-gray-800"}`}>
+<div
+className={`max-w-[70%] px-4 py-2 rounded-xl text-sm ${
+msg.sender==="user"
+? "bg-blue-600 text-white"
+: "bg-white border text-gray-800"
+}`}
+>
+
 {msg.text}
+
 </div>
 
 </div>
@@ -220,6 +269,8 @@ return(
 
 </div>
 
+
+{/* BOOKING ACTION */}
 
 {showBooking && (
 
@@ -243,6 +294,7 @@ Continue Chat
 
 )}
 
+{/* INPUT */}
 
 <div className="border-t px-4 py-3 flex gap-2">
 
