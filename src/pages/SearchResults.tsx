@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { doc, setDoc, getDoc } from "firebase/firestore"
 import { db } from "../firebase"
 import { getAuth } from "firebase/auth"
+import { addDoc, collection } from "firebase/firestore"
 
 type Package = {
 name: string
@@ -82,10 +83,20 @@ async function bookNow(pkg:Package){
 
 await trackNormalBooking()
 
+await addDoc(collection(db,"trips"),{
+departure,
+destination,
+departDate,
+returnDate,
+travelers,
+package: pkg.name,
+price: pkg.price,
+createdAt: new Date()
+})
+
 alert(`🎉 ${pkg.name} booked successfully!`)
 
 }
-
 
 // =============================
 // NAVIGATE TO SARA
@@ -116,7 +127,7 @@ useEffect(()=>{
 
 if(!departure || !destination) return
 
-const timer = setTimeout(()=> setShowPopup(true),15000)
+const timer = setTimeout(()=> setShowPopup(true),60000)
 
 return ()=>clearTimeout(timer)
 

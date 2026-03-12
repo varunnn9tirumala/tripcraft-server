@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import { doc, setDoc, getDoc } from "firebase/firestore"
 import { db } from "../firebase"
 import { getAuth } from "firebase/auth"
+import { addDoc, collection } from "firebase/firestore"
 
 export default function SaraChat(){
 
@@ -165,6 +166,23 @@ alert("🎉 Booking confirmed with SARA!")
 
 setShowBooking(false)
 
+await setDoc(ref,{
+name,
+email,
+usedSara:true,
+bookings:(snap.data()?.bookings || 0)+1
+},{merge:true})
+
+await addDoc(collection(db,"trips"),{
+departure,
+destination,
+departDate,
+returnDate,
+travelers,
+package:selectedPackage,
+price,
+createdAt:new Date()
+})
 }
 
 
