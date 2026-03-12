@@ -1,121 +1,148 @@
 export default async function handler(req, res) {
 
-if (req.method !== "POST") {
-return res.status(405).json({ error: "Method not allowed" })
-}
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" })
+  }
 
-try {
+  try {
 
-const { message, trip } = req.body
+    const { message, trip } = req.body
 
-const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const shortMessage = message?.toLowerCase().trim()
 
-method: "POST",
+    let userPrompt = ""
 
-headers: {
-"Content-Type": "application/json",
-Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
-},
+    // Handle greeting messages
+    if(
+      shortMessage === "hi" ||
+      shortMessage === "hello" ||
+      shortMessage === "hey"
+    ){
+      userPrompt = `
+The user greeted you.
 
-body: JSON.stringify({
+Reply with a short friendly greeting and ask what improvement they want for their trip.
 
-model: "gpt-4o-mini",
-
-temperature: 0.7,
-
-max_tokens: 200,
-
-messages: [
-
-{
-role: "system",
-content: `
-You are **SARA**, the intelligent AI travel assistant of TripCraft.
-
-Your job is to help users improve travel packages WITHOUT increasing the price.
-
-You behave like a friendly professional travel consultant.
-
-Rules:
-
-1. Always mention the destination
-2. Speak in a friendly tone
-3. Keep answers short (3–5 lines)
-4. Suggest complimentary upgrades
-5. Do NOT increase price
-6. Make the trip feel more valuable
-
-Possible upgrades:
-
-• Free breakfast
-• Airport pickup
-• Sightseeing tour
-• Cultural experiences
-• Travel insurance
-• Room upgrade
-• Late checkout
-
-Always sound confident and helpful.
-
-Example style:
-
-"Great choice visiting Bali! 🌴
-
-Since you're looking at the Standard Package, I can enhance your trip by adding a complimentary beach tour and free breakfast without increasing the price.
-
-Would you like me to upgrade this package for you?"
+Maximum 2 sentences.
 `
-},
+    }
 
-{
-role: "user",
-content: `
+    // Handle ok/thanks
+    else if(
+      shortMessage === "ok" ||
+      shortMessage === "okay" ||
+      shortMessage === "thanks"
+    ){
+      userPrompt = `
+The user acknowledged your message.
 
-Trip Details
+Reply politely and ask if they want:
+• better hotel
+• activities
+• cheaper options
+
+Maximum 2 sentences.
+`
+    }
+
+    else{
+
+      userPrompt = `
+User Trip Details:
 
 Departure: ${trip?.departure || "Unknown"}
 Destination: ${trip?.destination || "Unknown"}
-Dates: ${trip?.departDate || "Unknown"} to ${trip?.returnDate || "Unknown"}
 Travelers: ${trip?.travelers || "Unknown"}
-Selected Package: ${trip?.selectedPackage || "Not selected"}
+Dates: ${trip?.departDate || "Unknown"} to ${trip?.returnDate || "Unknown"}
 
-User Message:
+User Request:
 ${message}
 
 Improve the travel package without increasing price.
 `
-}
+    }
 
-]
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
 
-})
+      method: "POST",
 
-})
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
+      },
 
-const data = await response.json()
+      body: JSON.stringify({
 
-if (!data.choices) {
+        model: "gpt-4o-mini",
 
-console.log("OpenAI Error:", data)
+        temperature: 0.6,
 
-return res.status(500).json({
-reply: "SARA is currently unavailable. Please try again shortly."
-})
+        max_tokens: 120,
 
-}
+        messages: [
 
-res.status(200).json({
-reply: data.choices[0].message.content
-})
+          {
+            role: "system",
+            content: `
+You are SARA, the AI travel assistant of TripCraft.
 
-}catch(error){
+Your responses MUST follow these rules:
 
-console.log("Server error:", error)
+1. Keep answers SHORT (2–3 sentences maximum)
+2. Sound like a human travel expert
+3. Be friendly and conversational
+4. Mention destination when possible
+5. Never repeat long explanations
+6. Focus only on useful travel improvements
 
-res.status(500).json({
-reply: "AI server error. Please try again."
-})
+Example tone:
 
-}
+"Great choice visiting Goa! 🌴  
+I can add a complimentary beach tour and free breakfast to your package.  
+Would you also like a sunset cruise option?"
+
+Avoid long paragraphs.
+Avoid repeating greetings.
+`
+          },
+
+          {
+            role: "user",
+            content: userPrompt
+          }
+
+        ]
+
+      })
+
+    })
+
+    const data = await response.json()
+
+    if (!data.choices) {
+
+      console.log("OpenAI error:", data)
+
+      return res.status(500).json({
+        reply: "AI service temporarily unavailable."
+      })
+
+    }
+
+    res.status(200).json({
+      reply: data.choices[0].message.content
+    })
+
+  }
+
+  catch (error) {
+
+    console.log("Server error:", error)
+
+    res.status(500).json({
+      reply: "AI server error. Please try again."
+    })
+
+  }
 
 }
