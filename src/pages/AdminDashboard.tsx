@@ -20,7 +20,7 @@ export default function AdminDashboard(){
 
 const navigate = useNavigate()
 
-const [analytics,setAnalytics] = useState<any[]>([])
+const [users,setUsers] = useState<any[]>([])
 const [filtered,setFiltered] = useState<any[]>([])
 const [loading,setLoading] = useState(true)
 const [search,setSearch] = useState("")
@@ -37,30 +37,30 @@ if(auth !== "true"){
 navigate("/admin")
 }
 
-fetchAnalytics()
+fetchUsers()
 
 },[])
 
 
 
 /* ----------------------------- */
-/* FETCH ANALYTICS */
+/* FETCH USERS */
 /* ----------------------------- */
 
-async function fetchAnalytics(){
+async function fetchUsers(){
 
 try{
 
 setLoading(true)
 
-const snapshot = await getDocs(collection(db,"analytics"))
+const snapshot = await getDocs(collection(db,"users"))
 
 const data = snapshot.docs.map(doc => ({
 id: doc.id,
 ...doc.data()
 }))
 
-setAnalytics(data)
+setUsers(data)
 setFiltered(data)
 
 setLoading(false)
@@ -84,7 +84,7 @@ function handleSearch(value:string){
 
 setSearch(value)
 
-const filteredData = analytics.filter(user =>
+const filteredData = users.filter(user =>
 user.name?.toLowerCase().includes(value.toLowerCase()) ||
 user.email?.toLowerCase().includes(value.toLowerCase())
 )
@@ -112,17 +112,18 @@ navigate("/")
 /* STATS */
 /* ----------------------------- */
 
-const totalUsers = analytics.length
+const totalUsers = users.length
 
-const normalSatisfied = analytics.filter(a =>
-a.normalSearchSatisfied === true
+const totalBookings = users.reduce(
+(sum,user)=> sum + (user.bookings || 0),
+0
+)
+
+const saraUsage = users.filter(user =>
+user.usedSara === true
 ).length
 
-const saraUsed = analytics.filter(a =>
-a.saraSatisfied === true
-).length
-
-const unsatisfied = totalUsers - normalSatisfied
+const normalUsers = totalUsers - saraUsage
 
 
 
@@ -132,13 +133,12 @@ const unsatisfied = totalUsers - normalSatisfied
 
 const pieData = [
 
-{ name:"Normal Search Success", value:normalSatisfied },
-{ name:"Used SARA AI", value:saraUsed },
-{ name:"Unsatisfied", value:unsatisfied }
+{ name:"Normal Users", value:normalUsers },
+{ name:"Used SARA", value:saraUsage }
 
 ]
 
-const COLORS = ["#22c55e","#3b82f6","#ef4444"]
+const COLORS = ["#22c55e","#3b82f6"]
 
 
 
@@ -150,17 +150,17 @@ const barData = [
 
 {
 name:"Users",
-total:totalUsers
+value:totalUsers
 },
 
 {
-name:"Normal Success",
-total:normalSatisfied
+name:"Bookings",
+value:totalBookings
 },
 
 {
 name:"SARA Usage",
-total:saraUsed
+value:saraUsage
 }
 
 ]
@@ -209,11 +209,11 @@ Total Users
 <div className="bg-white p-6 rounded-xl shadow">
 
 <h2 className="text-gray-500">
-Normal Search Success
+Total Bookings
 </h2>
 
 <p className="text-3xl font-bold mt-2 text-green-600">
-{normalSatisfied}
+{totalBookings}
 </p>
 
 </div>
@@ -225,7 +225,7 @@ SARA AI Usage
 </h2>
 
 <p className="text-3xl font-bold mt-2 text-blue-600">
-{saraUsed}
+{saraUsage}
 </p>
 
 </div>
@@ -237,8 +237,6 @@ SARA AI Usage
 {/* CHARTS */}
 
 <div className="grid md:grid-cols-2 gap-10 mb-12">
-
-{/* PIE CHART */}
 
 <div className="bg-white p-6 rounded-xl shadow">
 
@@ -275,8 +273,6 @@ label
 
 
 
-{/* BAR CHART */}
-
 <div className="bg-white p-6 rounded-xl shadow">
 
 <h2 className="text-lg font-semibold mb-4">
@@ -295,7 +291,7 @@ Platform Insights
 
 <Tooltip/>
 
-<Bar dataKey="total" fill="#3b82f6"/>
+<Bar dataKey="value" fill="#3b82f6"/>
 
 </BarChart>
 
@@ -334,8 +330,8 @@ className="border p-3 rounded-lg w-80"
 
 <th className="p-4">Name</th>
 <th className="p-4">Email</th>
-<th className="p-4">Normal Search</th>
-<th className="p-4">SARA AI</th>
+<th className="p-4">Bookings</th>
+<th className="p-4">SARA Usage</th>
 
 </tr>
 
@@ -376,16 +372,12 @@ No users found
 </td>
 
 <td className="p-4">
-
-{user.normalSearchSatisfied
-? "✅ Yes"
-: "❌ No"}
-
+{user.bookings || 0}
 </td>
 
 <td className="p-4">
 
-{user.saraSatisfied
+{user.usedSara
 ? "🤖 Used"
 : "—"}
 
