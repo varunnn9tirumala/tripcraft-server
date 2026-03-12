@@ -78,11 +78,11 @@ usedSara:false
 // BOOK NOW BUTTON
 // =============================
 
-async function bookNow(pkgName:string){
+async function bookNow(pkg:Package){
 
 await trackNormalBooking()
 
-alert(`🎉 ${pkgName} booked successfully!`)
+alert(`🎉 ${pkg.name} booked successfully!`)
 
 }
 
@@ -91,7 +91,7 @@ alert(`🎉 ${pkgName} booked successfully!`)
 // NAVIGATE TO SARA
 // =============================
 
-function improveWithSara(pkgName:string){
+function improveWithSara(pkg:Package){
 
 navigate("/sara",{
 state:{
@@ -100,7 +100,8 @@ destination,
 departDate,
 returnDate,
 travelers,
-selectedPackage: pkgName
+selectedPackage: pkg.name,
+price: pkg.price
 }
 })
 
@@ -178,23 +179,12 @@ const hotelRes = await fetch(
 
 const hotels = await hotelRes.json()
 
-
-// -----------------------------
-// AVERAGE FLIGHT PRICE
-// -----------------------------
-
-const flightPrices =
-flights?.map((f:any)=>f.price) || []
+const flightPrices = flights?.map((f:any)=>f.price) || []
 
 const avgFlight =
 flightPrices.length > 0
 ? flightPrices.reduce((a:number,b:number)=>a+b,0) / flightPrices.length
 : 7000
-
-
-// -----------------------------
-// AVERAGE HOTEL PRICE
-// -----------------------------
 
 const hotelPrices =
 hotels?.map((h:any)=>h.Hotel_Price || h.price || 5000)
@@ -205,11 +195,6 @@ hotelPrices.length > 0
 : 5000
 
 let basePrice = (avgFlight + avgHotel) * travelers
-
-
-// -----------------------------
-// SAFETY PRICE LOGIC
-// -----------------------------
 
 const indianCities = [
 "Delhi","Goa","Mumbai","Chennai","Bangalore",
@@ -231,11 +216,6 @@ basePrice = 15000 * travelers
 }
 
 }
-
-
-// -----------------------------
-// CREATE PACKAGES
-// -----------------------------
 
 setPackages([
 
@@ -352,14 +332,14 @@ Starting from ₹ {pkg.price}
 <div className="flex flex-col gap-3">
 
 <button
-onClick={()=>bookNow(pkg.name)}
+onClick={()=>bookNow(pkg)}
 className="bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg"
 >
 Book Now
 </button>
 
 <button
-onClick={()=>improveWithSara(pkg.name)}
+onClick={()=>improveWithSara(pkg)}
 className="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg"
 >
 Improve with SARA 🤖
@@ -372,7 +352,6 @@ Improve with SARA 🤖
 ))}
 
 </div>
-
 
 {showPopup && (
 

@@ -17,7 +17,8 @@ destination="",
 departDate="",
 returnDate="",
 travelers=1,
-selectedPackage=""
+selectedPackage="",
+price=0
 } = trip
 
 const [message,setMessage] = useState("")
@@ -82,7 +83,8 @@ destination,
 departDate,
 returnDate,
 travelers,
-selectedPackage
+selectedPackage,
+price
 }
 })
 

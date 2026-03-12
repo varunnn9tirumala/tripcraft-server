@@ -53,12 +53,14 @@ User Trip Details:
 Departure: ${trip?.departure || "Unknown"}
 Destination: ${trip?.destination || "Unknown"}
 Travelers: ${trip?.travelers || "Unknown"}
+Package: ${trip?.selectedPackage || "Unknown"}
+Price: ₹${trip?.price || "Unknown"}
 Dates: ${trip?.departDate || "Unknown"} to ${trip?.returnDate || "Unknown"}
 
 User Request:
 ${message}
 
-Improve the travel package without increasing price.
+Improve the travel package without increasing the price and clearly mention that the final price remains ₹${trip?.price}.
 `
     }
 
