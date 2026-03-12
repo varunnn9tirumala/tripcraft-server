@@ -18,7 +18,6 @@ const [depSuggestions,setDepSuggestions] = useState<any[]>([])
 const [desSuggestions,setDesSuggestions] = useState<any[]>([])
 
 
-
 /* ----------------------------- */
 /* FETCH DEPARTURE CITIES */
 /* ----------------------------- */
@@ -49,7 +48,6 @@ console.log(err)
 }
 
 
-
 /* ----------------------------- */
 /* FETCH DESTINATION CITIES */
 /* ----------------------------- */
@@ -78,7 +76,6 @@ console.log(err)
 }
 
 }
-
 
 
 /* ----------------------------- */
@@ -112,7 +109,6 @@ fetchHotels()
 },[destination])
 
 
-
 /* ----------------------------- */
 /* SEARCH PACKAGES */
 /* ----------------------------- */
@@ -132,7 +128,6 @@ travelers
 }
 
 
-
 return(
 
 <div className="flex flex-col min-h-screen">
@@ -141,7 +136,7 @@ return(
 {/* HERO SECTION */}
 
 <div
-className="relative flex flex-col items-center justify-center pt-16 pb-20"
+className="relative flex flex-col items-center justify-center pt-12 pb-20"
 style={{
 backgroundImage:"url('https://images.unsplash.com/photo-1502602898657-3e91760cbb34')",
 backgroundSize:"cover",
@@ -156,10 +151,13 @@ backgroundPosition:"center"
 
 {/* TITLE */}
 
-<h1 className="text-6xl font-bold text-white mb-8">
+<h1 className="text-6xl font-bold text-white mb-2">
 TripCraft ✈
 </h1>
 
+<p className="text-white/90 text-lg mb-10 tracking-wide">
+AI Powered Trip Planner
+</p>
 
 
 {/* SEARCH BOX */}
@@ -173,7 +171,6 @@ Search Travel Packages
 <p className="text-gray-500 mb-6 text-sm">
 Find combined flight and hotel deals
 </p>
-
 
 
 <div className="grid md:grid-cols-2 gap-4">
@@ -218,7 +215,6 @@ className="p-2 hover:bg-blue-100 cursor-pointer"
 </div>
 
 
-
 {/* Destination */}
 
 <div className="relative">
@@ -258,7 +254,6 @@ className="p-2 hover:bg-blue-100 cursor-pointer"
 </div>
 
 
-
 {/* Departure Date */}
 
 <div>
@@ -275,7 +270,6 @@ className="border p-3 rounded-md w-full"
 />
 
 </div>
-
 
 
 {/* Return Date */}
@@ -298,7 +292,6 @@ className="border p-3 rounded-md w-full"
 </div>
 
 
-
 {/* Travelers */}
 
 <div className="mt-4">
@@ -317,7 +310,6 @@ className="border p-3 rounded-md w-full"
 </div>
 
 
-
 <button
 onClick={searchPackages}
 className="bg-orange-600 hover:bg-orange-700 text-white w-full py-3 rounded-md mt-6"
@@ -330,7 +322,6 @@ Search Packages
 </div>
 
 </div>
-
 
 
 {/* HOTEL PREVIEW SECTION */}
@@ -370,7 +361,6 @@ Hotels in {destination}
 )}
 
 
-
 {/* WEBSITE INFO */}
 
 <section className="bg-gray-100 py-20 px-10 text-center">
@@ -384,7 +374,6 @@ TripCraft helps travelers discover the perfect travel package in seconds.
 Our smart travel engine combines flights, hotels and destinations
 into personalized travel experiences.
 </p>
-
 
 
 <div className="grid md:grid-cols-3 gap-12 mt-14 max-w-6xl mx-auto">
@@ -402,7 +391,6 @@ Instantly discover the best travel packages using our AI engine.
 </div>
 
 
-
 <div className="p-6 bg-white rounded-xl shadow-lg">
 
 <h3 className="text-xl font-semibold mb-3">
@@ -414,7 +402,6 @@ Your intelligent travel companion guiding you step-by-step.
 </p>
 
 </div>
-
 
 
 <div className="p-6 bg-white rounded-xl shadow-lg">
@@ -434,11 +421,9 @@ Design your perfect journey with smart recommendations.
 </section>
 
 
-
 {/* FLOATING SARA BUTTON */}
 
 <SaraAI/>
-
 
 </div>
 
