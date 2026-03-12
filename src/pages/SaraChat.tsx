@@ -1,10 +1,9 @@
 import { useLocation } from "react-router-dom"
 import { useState, useRef, useEffect } from "react"
 
-import { doc, setDoc, getDoc } from "firebase/firestore"
+import { doc, setDoc, getDoc, addDoc, collection } from "firebase/firestore"
 import { db } from "../firebase"
 import { getAuth } from "firebase/auth"
-import { addDoc, collection } from "firebase/firestore"
 
 export default function SaraChat(){
 
@@ -42,18 +41,10 @@ Tell me what you'd like to improve and I'll try to add complimentary experiences
 ])
 
 
-// ======================
-// AUTO SCROLL
-// ======================
-
 useEffect(()=>{
 chatEndRef.current?.scrollIntoView({behavior:"smooth"})
 },[chat,loading])
 
-
-// ======================
-// SEND MESSAGE
-// ======================
 
 async function sendMessage(){
 
@@ -119,10 +110,6 @@ setLoading(false)
 }
 
 
-// ======================
-// CONFIRM SARA BOOKING
-// ======================
-
 async function confirmSaraBooking(){
 
 const auth = getAuth()
@@ -162,33 +149,33 @@ bookings:1
 
 }
 
-alert("🎉 Booking confirmed with SARA!")
+await addDoc(collection(db,"trips"),{
 
-setShowBooking(false)
-
-await setDoc(ref,{
+userId,
 name,
 email,
-usedSara:true,
-bookings:(snap.data()?.bookings || 0)+1
-},{merge:true})
 
-await addDoc(collection(db,"trips"),{
 departure,
 destination,
 departDate,
 returnDate,
 travelers,
+
 package:selectedPackage,
 price,
+
+bookingType:"sara",
+
 createdAt:new Date()
+
 })
+
+alert("🎉 Booking confirmed with SARA!")
+
+setShowBooking(false)
+
 }
 
-
-// ======================
-// UI
-// ======================
 
 return(
 
@@ -196,61 +183,31 @@ return(
 
 <div className="bg-white shadow-xl rounded-xl w-[650px] flex flex-col">
 
-{/* HEADER */}
-
 <div className="bg-blue-600 text-white px-6 py-4 rounded-t-xl">
-
-<h1 className="text-lg font-semibold">
-🤖 SARA AI Travel Assistant
-</h1>
-
+<h1 className="text-lg font-semibold">🤖 SARA AI Travel Assistant</h1>
 </div>
-
-
-{/* TRIP SUMMARY */}
 
 <div className="bg-blue-50 border-b px-6 py-3 text-sm">
 
 <p className="font-semibold mb-1">Your Trip</p>
 
-<p>
-{departure} → {destination}
-</p>
+<p>{departure} → {destination}</p>
 
-<p>
-{departDate} → {returnDate}
-</p>
+<p>{departDate} → {returnDate}</p>
 
-<p>
-{travelers} Travelers • {selectedPackage}
-</p>
+<p>{travelers} Travelers • {selectedPackage}</p>
 
 </div>
 
-
-{/* CHAT AREA */}
 
 <div className="h-[420px] overflow-y-auto px-6 py-4 space-y-4 bg-gray-50">
 
 {chat.map((msg,index)=>(
 
-<div
-key={index}
-className={`flex ${
-msg.sender==="user"?"justify-end":"justify-start"
-}`}
->
+<div key={index} className={`flex ${msg.sender==="user"?"justify-end":"justify-start"}`}>
 
-<div
-className={`max-w-[70%] px-4 py-2 rounded-xl text-sm ${
-msg.sender==="user"
-? "bg-blue-600 text-white"
-: "bg-white border text-gray-800"
-}`}
->
-
+<div className={`max-w-[70%] px-4 py-2 rounded-xl text-sm ${msg.sender==="user" ? "bg-blue-600 text-white" : "bg-white border text-gray-800"}`}>
 {msg.text}
-
 </div>
 
 </div>
@@ -263,8 +220,6 @@ msg.sender==="user"
 
 </div>
 
-
-{/* BOOKING ACTION */}
 
 {showBooking && (
 
@@ -288,8 +243,6 @@ Continue Chat
 
 )}
 
-
-{/* INPUT */}
 
 <div className="border-t px-4 py-3 flex gap-2">
 

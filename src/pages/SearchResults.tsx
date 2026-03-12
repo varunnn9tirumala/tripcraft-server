@@ -1,15 +1,14 @@
 import { useLocation, useNavigate } from "react-router-dom"
 import { useEffect, useState } from "react"
 
-import { doc, setDoc, getDoc } from "firebase/firestore"
+import { doc, setDoc, getDoc, addDoc, collection } from "firebase/firestore"
 import { db } from "../firebase"
 import { getAuth } from "firebase/auth"
-import { addDoc, collection } from "firebase/firestore"
 
 type Package = {
-name: string
-price: number
-features: string[]
+  name: string
+  price: number
+  features: string[]
 }
 
 export default function SearchResults(){
@@ -32,7 +31,7 @@ const [packages,setPackages] = useState<Package[]>([])
 
 
 // =============================
-// TRACK NORMAL BOOKING
+// TRACK USER BOOKING
 // =============================
 
 async function trackNormalBooking(){
@@ -72,6 +71,8 @@ usedSara:false
 
 }
 
+return {name,email,userId}
+
 }
 
 
@@ -81,22 +82,33 @@ usedSara:false
 
 async function bookNow(pkg:Package){
 
-await trackNormalBooking()
+const userData = await trackNormalBooking()
 
 await addDoc(collection(db,"trips"),{
+
+userId:userData.userId,
+name:userData.name,
+email:userData.email,
+
 departure,
 destination,
 departDate,
 returnDate,
 travelers,
+
 package: pkg.name,
 price: pkg.price,
-createdAt: new Date()
+
+bookingType:"normal",
+
+createdAt:new Date()
+
 })
 
 alert(`🎉 ${pkg.name} booked successfully!`)
 
 }
+
 
 // =============================
 // NAVIGATE TO SARA
@@ -140,7 +152,28 @@ return ()=>clearTimeout(timer)
 
 async function handleSatisfied(){
 
-await trackNormalBooking()
+const userData = await trackNormalBooking()
+
+await addDoc(collection(db,"trips"),{
+
+userId:userData.userId,
+name:userData.name,
+email:userData.email,
+
+departure,
+destination,
+departDate,
+returnDate,
+travelers,
+
+package:"User Selected Package",
+price:0,
+
+bookingType:"normal",
+
+createdAt:new Date()
+
+})
 
 alert("👍 Great! Booking confirmed.")
 
@@ -363,44 +396,6 @@ Improve with SARA 🤖
 ))}
 
 </div>
-
-{showPopup && (
-
-<div className="fixed inset-0 flex items-center justify-center bg-black/50 z-[9999]">
-
-<div className="bg-white p-8 rounded-xl shadow-xl text-center w-[420px]">
-
-<h2 className="text-xl font-bold mb-4">
-Are you satisfied with this package?
-</h2>
-
-<p className="text-gray-600 mb-6">
-If not, our AI assistant SARA can improve it for you.
-</p>
-
-<div className="flex justify-center gap-4">
-
-<button
-onClick={handleSatisfied}
-className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg"
->
-Yes 👍
-</button>
-
-<button
-onClick={handleNotSatisfied}
-className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg"
->
-Ask SARA 🤖
-</button>
-
-</div>
-
-</div>
-
-</div>
-
-)}
 
 </div>
 
