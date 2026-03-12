@@ -26,7 +26,11 @@ selectedPackage="",
 price=0
 } = trip
 
-const [message,setMessage] = useState("")
+const [message,setMessage] = useState(
+selectedPackage
+? `Can you improve this ${selectedPackage.toLowerCase()} with better experiences and amenities?`
+: "Can you improve this travel package?"
+)
 const [loading,setLoading] = useState(false)
 const [showBooking,setShowBooking] = useState(false)
 
