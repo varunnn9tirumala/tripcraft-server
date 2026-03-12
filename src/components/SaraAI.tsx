@@ -110,8 +110,9 @@ msg.sender==="user"
 }`}
 >
 
-{msg.text}
-
+{msg.text.split("\n").map((line, i) => (
+  <p key={i}>{line}</p>
+))}
 </div>
 
 </div>
