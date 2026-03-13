@@ -150,7 +150,7 @@ useEffect(()=>{
 
 if(!departure || !destination) return
 
-const timer = setTimeout(()=> setShowPopup(true),60000)
+const timer = setTimeout(()=> setShowPopup(true),300000)
 
 return ()=>clearTimeout(timer)
 
