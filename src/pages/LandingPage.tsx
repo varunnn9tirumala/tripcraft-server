@@ -155,7 +155,7 @@ backgroundPosition:"center"
 TripCraft ✈
 </h1>
 
-<p className="text-white/90 text-lg mb-10 tracking-wide">
+<p className="text-white text-3xl font-semibold mb-12 tracking-wide bg-black/30 px-6 py-2 rounded-lg inline-block backdrop-blur-sm">
 AI Powered Trip Planner
 </p>
 

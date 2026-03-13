@@ -1,10 +1,12 @@
 import express from "express"
 import cors from "cors"
+import axios from "axios"
 import { GoogleGenerativeAI } from "@google/generative-ai"
 import { connectDB } from "./database.js"
 import Location from "./models/Location.js"
 import Hotel from "./models/Hotel.js"
 import Flight from "./models/Flight.js"
+
 const app = express()
 
 // Middleware
@@ -22,6 +24,7 @@ const model = genAI.getGenerativeModel({
 })
 
 let lastRequestTime = 0
+
 
 // -----------------------------
 // GET FLIGHTS
@@ -54,70 +57,81 @@ error:"Failed to fetch flights"
 }
 
 })
+
+
 // -----------------------------
-// GET HOTELS (ALL OR SEARCH)
+// SERVER HEALTH CHECK
+// -----------------------------
+app.get("/ping", (req, res) => {
+res.status(200).send("Server alive")
+})
+
+
+// -----------------------------
+// GET HOTELS
 // -----------------------------
 app.get("/api/hotels", async (req, res) => {
-  try {
+try {
 
-    const city = req.query.city
+const city = req.query.city
 
-    let query = {}
+let query = {}
 
-    if (city) {
-      query.City = { $regex: city, $options: "i" }
-    }
+if (city) {
+query.City = { $regex: city, $options: "i" }
+}
 
-    const hotels = await Hotel.find(query)
+const hotels = await Hotel.find(query)
 
-    const formattedHotels = hotels.map(h => ({
-      name: h.Hotel_Name,
-      rating: h.Hotel_Rating,
-      price: h.Hotel_Price,
-      city: h.City
-    }))
+const formattedHotels = hotels.map(h => ({
+name: h.Hotel_Name,
+rating: h.Hotel_Rating,
+price: h.Hotel_Price,
+city: h.City
+}))
 
-    res.json(formattedHotels)
+res.json(formattedHotels)
 
-  } catch (error) {
-    console.log("Hotel fetch error:", error)
+} catch (error) {
 
-    res.status(500).json({
-      error: "Failed to fetch hotels"
-    })
-  }
+console.log("Hotel fetch error:", error)
+
+res.status(500).json({
+error: "Failed to fetch hotels"
 })
+
+}
+})
+
+
 // -----------------------------
 // TEST ROUTE
 // -----------------------------
 app.get("/", (req, res) => {
-  res.send("🚀 SARA SERVER IS RUNNING")
+res.send("🚀 SARA SERVER IS RUNNING")
 })
 
 
-// -----------------------------
-// GET ALL LOCATIONS
-// -----------------------------
 // -----------------------------
 // GET ALL LOCATIONS
 // -----------------------------
 app.get("/api/locations", async (req, res) => {
 
-  try {
+try {
 
-    const locations = await Location.find()
+const locations = await Location.find()
 
-    res.json(locations)
+res.json(locations)
 
-  } catch (error) {
+} catch (error) {
 
-    console.log("Location fetch error:", error)
+console.log("Location fetch error:", error)
 
-    res.status(500).json({
-      error: "Failed to fetch locations"
-    })
+res.status(500).json({
+error: "Failed to fetch locations"
+})
 
-  }
+}
 
 })
 
@@ -127,31 +141,33 @@ app.get("/api/locations", async (req, res) => {
 // -----------------------------
 app.get("/api/locations/search", async (req, res) => {
 
-  try {
+try {
 
-    const q = req.query.q
-    console.log("Search query:", q)
+const q = req.query.q
 
-    if (!q) {
-      return res.json([])
-    }
+console.log("Search query:", q)
 
-    const locations = await Location.find({
-      name: { $regex: q, $options: "i" }
-    }).limit(10)
-     console.log("Results:", locations)
+if (!q) {
+return res.json([])
+}
 
-    res.json(locations)
+const locations = await Location.find({
+name: { $regex: q, $options: "i" }
+}).limit(10)
 
-  } catch (error) {
+console.log("Results:", locations)
 
-    console.log(error)
+res.json(locations)
 
-    res.status(500).json({
-      error: "Search failed"
-    })
+} catch (error) {
 
-  }
+console.log(error)
+
+res.status(500).json({
+error: "Search failed"
+})
+
+}
 
 })
 
@@ -161,65 +177,65 @@ app.get("/api/locations/search", async (req, res) => {
 // -----------------------------
 app.post("/api/sara", async (req, res) => {
 
-  const message = req.body.message
+const message = req.body.message
 
-  if (!message) {
-    return res.json({
-      reply: "Please send a message."
-    })
-  }
+if (!message) {
+return res.json({
+reply: "Please send a message."
+})
+}
 
-  const now = Date.now()
+const now = Date.now()
 
-  if (now - lastRequestTime < 3000) {
-    return res.json({
-      reply: "⏳ Please wait a few seconds before sending another message."
-    })
-  }
+if (now - lastRequestTime < 3000) {
+return res.json({
+reply: "⏳ Please wait a few seconds before sending another message."
+})
+}
 
-  lastRequestTime = now
+lastRequestTime = now
 
-  try {
+try {
 
-    const result = await model.generateContent({
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: message }]
-        }
-      ]
-    })
+const result = await model.generateContent({
+contents: [
+{
+role: "user",
+parts: [{ text: message }]
+}
+]
+})
 
-    const response = await result.response
-    const text = response.text()
+const response = await result.response
+const text = response.text()
 
-    res.json({
-      reply: text
-    })
+res.json({
+reply: text
+})
 
-  } catch (error) {
+} catch (error) {
 
-    console.log("Gemini error:", error.message)
+console.log("Gemini error:", error.message)
 
-    if (error.status === 429 || error.message.includes("429")) {
+if (error.status === 429 || error.message.includes("429")) {
 
-      return res.json({
-        reply:
+return res.json({
+reply:
 `⚠️ SARA is receiving many requests right now.
 
 Please wait about 1 minute and try again.`
-      })
+})
 
-    }
+}
 
-    res.json({
-      reply:
+res.json({
+reply:
 `⚠️ SARA AI is temporarily unavailable.
 
 Please try again in a moment.`
-    })
+})
 
-  }
+}
 
 })
 
@@ -227,8 +243,33 @@ Please try again in a moment.`
 // -----------------------------
 // START SERVER
 // -----------------------------
-app.listen(5050, () => {
+const PORT = process.env.PORT || 5050
 
-  console.log("🚀 SARA SERVER RUNNING http://localhost:5050")
+app.listen(PORT, () => {
+
+console.log(`🚀 SARA SERVER RUNNING ON PORT ${PORT}`)
+
+
+// -----------------------------
+// SELF PING (PREVENT RENDER SLEEP)
+// -----------------------------
+
+const SELF_URL = "https://tripcraft-server.onrender.com/ping"
+
+setInterval(async () => {
+
+try {
+
+await axios.get(SELF_URL)
+
+console.log("✅ Self ping successful")
+
+} catch (err) {
+
+console.log("❌ Self ping failed")
+
+}
+
+}, 840000) // 14 minutes
 
 })
